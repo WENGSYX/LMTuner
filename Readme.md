@@ -43,7 +43,7 @@ lingo_dataset.add_sample(['你是谁？',
 dataset = lingo_dataset.get_list()
 ```
 
-我们在LIMA数据集的基础上人工翻译为中文问答，并在多处进行改写以适应中文环境，另外加入了一百条我们编写的高质量中文对话语料。
+我们在[LIMA](https://huggingface.co/datasets/GAIR/lima)数据集的基础上人工翻译为中文问答，并在多处进行改写以适应中文环境，另外加入了一百条我们编写的高质量中文对话语料。
 
 - 我们内置了数十条包含模型名字的样本，通过简单调用 `lingo_dataset.set_model_name`就可以一键为所有样本更新模型名字
 - 我们支持额外添加新的样本，调用 `lingo_dataset.add_sample`并传入对话列表，即可自动加入新的对话样本。
