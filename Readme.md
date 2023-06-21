@@ -1,8 +1,8 @@
 ## Lingo: Make the LLM Better for Everyone🚀🚀
 
-*Read this in [English](README_en.md).*
+*Read this in [English](Rradme_en.md).*
 
-<div align="center">
+<div>
 
 
 
