@@ -23,7 +23,7 @@ Lingo的核心使命是通过低成本的方式使得大型语言模型在更多
 ### 如何安装
 
 ```
-git clone https://github.com/WENGSYX/lingo
+git clone https://github.com/WENGSYX/Lingo
 pip install .
 ```
 
