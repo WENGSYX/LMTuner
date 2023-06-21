@@ -1,6 +1,6 @@
 ## Lingo: Make the LLM Better for Everyone🚀🚀
 
-*Read this in [English](Rradme_en.md).*
+*Read this in [English](Readme_en.md).*
 
 <div>
 
