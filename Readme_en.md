@@ -18,7 +18,7 @@ weights. We are committed to providing you with the most comprehensive and effec
 ### How to install
 
 ```
-git clone https://github.com/WENGSYX/lingo
+git clone https://github.com/WENGSYX/Lingo
 pip install .
 ```
 
