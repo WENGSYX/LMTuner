@@ -19,7 +19,7 @@ import setuptools
 setuptools.setup(
     name="lingo",
     version="1.0.0",
-    url="https://github.com/WENGSYX/lingo",
+    url="https://github.com/WENGSYX/Lingo",
     author="Yixuan Weng",
     author_email="wengsyx@gmail.com",
     description="Lingo: Make the LLM Better for Everyone",
@@ -28,6 +28,7 @@ setuptools.setup(
         "transformers",
         "numpy",
         "datasets",
-        "torch"
+        "torch",
+        "nvidia-ml-py"
     ],
 )
