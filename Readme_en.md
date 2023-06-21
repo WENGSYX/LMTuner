@@ -60,7 +60,7 @@ Version-2:
 
 ### Cite
 
-This project is an accompanying project of Neural Comprehension. If you are interested in our project, please feel free
+This project is an accompanying project of [Neural Comprehension](https://github.com/WENGSYX/Neural-Comprehension). If you are interested in our project, please feel free
 to quote.
 
 ```
