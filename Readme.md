@@ -64,7 +64,7 @@ Version-2 目标 :
 
 ### 引用
 
-本项目为神经理解的伴生项目。如果您对我们的项目感兴趣，欢迎引用。
+本项目为[神经理解](https://github.com/WENGSYX/Neural-Comprehension)的伴生项目。如果您对我们的项目感兴趣，欢迎引用。
 
 ```
 @misc{weng2023mastering,
