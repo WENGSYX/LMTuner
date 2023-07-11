@@ -18,7 +18,7 @@ import setuptools
 
 setuptools.setup(
     name="lingo",
-    version="1.0.0",
+    version="1.1.0",
     url="https://github.com/WENGSYX/Lingo",
     author="Yixuan Weng",
     author_email="wengsyx@gmail.com",
