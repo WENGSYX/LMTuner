@@ -1,0 +1,1 @@
+LINGO_SUPPORT_DATASET = ['WENGSYX/lingo-dataset-v1','Lingo-Medical-v1','Lingo-law-v1','Lingo-Chinese-v1','Lingo-English-v1']

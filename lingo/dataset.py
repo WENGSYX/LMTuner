@@ -6,11 +6,12 @@ DATA_LETEST = '1.0.0'
 
 class LingoDataset():
     def __init__(self, version='letest'):
-        assert version in ['letest', '1.0.0']
-
-        if version == 'letest':
-            version = DATA_LETEST
-        self.origin_dataset = load_dataset(DATANAME[version])
+        if version in ['letest', '1.0.0']:
+            if version == 'letest':
+                version = DATA_LETEST
+            self.origin_dataset = load_dataset(DATANAME[version])
+        else:
+            self.origin_dataset = load_dataset(version)
 
         self.dataset = self.origin_dataset['train']
         self.version = version
@@ -41,3 +42,12 @@ class LingoDataset():
 
     def push_to_hub(self, repo_id):
         self.dataset.push_to_hub(repo_id)
+
+    def turn_conversations_to_io(self):
+        data = []
+        for d in self.get_list():
+            con = d['conversations']
+            for i in range(int(len(con)/2)):
+                data.append({'input':con[i],'output':con[i+1]})
+
+        return data
