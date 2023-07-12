@@ -5,6 +5,7 @@ import json
 from lingo.setting import *
 from lingo.deepspeed_file import get_deepspeed
 import subprocess
+import os
 
 
 
@@ -178,14 +179,17 @@ def let_lingo_conversation(ARGS):
             break
 
 
-    cmd = get_cmd(ARGS)
+    cmd,glm_130b_python_code,wandb_python_code = get_cmd(ARGS)
     if ARGS['Train_This_Machine']:
         if launch_cmd(cmd) == 0:
             print_stream(
-                '\033[0;36m[AI] Now we have successed for trian the model !\033[0m')
+                '\033[0;36m[AI] We have successfully trained the model now !\033[0m')
 
     else:
-        write_readme(ARGS,cmd)
+        readme_file = write_readme(ARGS,cmd,glm_130b_python_code,wandb_python_code)
+        with open('./readme.md','w',encoding='utf-8') as f:
+            for i in readme_file:
+                f.write(i+'\n')
         print_stream(
             f'\033[0;36m[AI] You will train the model in other machines with GPUs, and I have written a readme ({os.path.dirname(os.path.abspath (__file__))}/readme.md) for you. You can refer to its commands. \033[0m')
 
@@ -200,6 +204,9 @@ def launch_cmd(cmd):
 
 def get_cmd(ARGS):
     cmd = "deepspeed "
+    glm_130b_python_code = ''
+    wandb_python_code = ''
+
     if ARGS['model'] == 'GLM-130B' and ARGS['GPU Number'] >= 4:
         cmd += '--include localhost:{} '.format(','.join([str(i) for i in list(range(ARGS['GPU Number'] // 4 * 4))]))
     else:
@@ -215,10 +222,15 @@ def get_cmd(ARGS):
         print_stream(
             '\033[0;36m[AI] Download the GLM-130B checkpoint from: https://docs.google.com/forms/d/e/1FAIpQLSehr5Dh_i3TwACmFFi8QEgIVNYGmSPwV0GueIcsUev0NEfUug/viewform?usp=sf_link \033[0m')
         print('')
+
+
+
         print_stream('\033[0;36m[AI] Merge them and extract it: \033[0m')
         print_stream('\033[0;36m[AI] cat glm-130b-sat.tar.part_* > glm-130b-sat.tar \033[0m')
         print_stream('\033[0;36m[AI] tar xvf glm-130b-sat.tar \033[0m')
         print('')
+
+
         print_stream('\033[0;36m[AI] Can you tell me the absolute location of the glm-130b-sat folder? \033[0m')
         input_folder = input('\033[0;36m[Answer] \033[0m')
         print_stream(
@@ -247,6 +259,7 @@ def get_cmd(ARGS):
             qlora = ''
         print_stream(
             f'\033[0;36m[AI] python tools/convert_tp.py --input-folder {input_folder} --output-folder {output_folder} --target-tp {target_tp} {qlora} \033[0m')
+        glm_130b_python_code = f'python tools/convert_tp.py --input-folder {input_folder} --output-folder {output_folder} --target-tp {target_tp} {qlora}'
         input('\033[0;36m[AI] If you have completed these operations, please let me know at any time. \033[0m')
         print('')
         cmd += f'--num-layers 70 --hidden-size 12288 --inner-hidden-size 32768 --vocab-size 150528 --layernorm-order post --num-attention-heads 96 --models GLM-130B '
@@ -268,12 +281,17 @@ def get_cmd(ARGS):
         '\033[0;36m[AI] By the way, do you want to use Wandb to record logs? \033[0m')
     wandb_api = input(
         '\033[0;36m[AI] If so, please provide Wandb"s API KEY, which may be located in https://wandb.ai/settings. Of course, if you enter No, we can skip this step \033[0m')
+
     if len(wandb_api) >= 10:
-        if launch_cmd('wandb login 1234') == 0:
-            cmd += '--wandb 1'
+        if ARGS['Train_This_Machine']:
+
+            if launch_cmd(f'wandb login {wandb_api}') == 0:
+                cmd += '--wandb 1'
+            else:
+                print_stream(
+                    '\033[0;36m[WARM] The wandb raise ERROR, but we can continue without wandb. \033[0m')
         else:
-            print_stream(
-                '\033[0;36m[WARM] The wandb raise ERROR, but we can continue without wandb. \033[0m')
+            wandb_python_code = f'wandb login {wandb_api}'
 
     if ARGS['data'] in LINGO_SUPPORT_DATASET:
         dataset = "WENGSYX/" + ARGS["data"]
@@ -288,15 +306,101 @@ def get_cmd(ARGS):
     with open('./ds_config.json','w',encoding='utf-8') as f:
         f.write(ds_config)
 
-    return cmd
+    return cmd,glm_130b_python_code,wandb_python_code
 
-def write_readme(ARGS,cmd):
+def write_readme(ARGS,cmd,glm_130b_python_code,wandb_python_code):
     readme_lines = []
     if ARGS['language'] == 'Chinese':
-        readme_lines.append('# 如何使用Lingo在另一台服务器中训练模型')
-        readme_lines.append('*** 欢迎来到Lingo ***,我们能够为你提供各种你想要的训练方式')
+        readme_lines.append('# 使用Lingo在另一台服务器中训练模型')
+        readme_lines.append('***欢迎来到Lingo***,我们能够为你提供各种你想要的训练方式')
+        readme_lines.append('')
         readme_lines.append('### 安装环境')
-        readme_lines.append('***具体过程请参考[Github源码](https://github.com/microsoft/Megatron-DeepSpeed)')
+        readme_lines.append('具体过程请参考[Github说明](https://github.com/WENGSYX/Lingo/blob/main/QA/readme.md)')
+        readme_lines.append('')
+
+        readme_lines.append('### 操作')
+        if ARGS['model'] == 'GLM-130B':
+            readme_lines.append('#### 下载 GLM-130B')
+            readme_lines.append(
+                '你可以从这里下载GLM-130B的权重: https://docs.google.com/forms/d/e/1FAIpQLSehr5Dh_i3TwACmFFi8QEgIVNYGmSPwV0GueIcsUev0NEfUug/viewform?usp=sf_link')
+            readme_lines.append('')
+            readme_lines.append('#### 合并 GLM-130B')
+            readme_lines.append(
+                '之后你需要合并压缩文件，并解压成文件夹')
+            readme_lines.append('```bash')
+            readme_lines.append('cat glm-130b-sat.tar.part_* > glm-130b-sat.tar')
+            readme_lines.append('tar xvf glm-130b-sat.tar')
+            readme_lines.append('```')
+            readme_lines.append('')
+            readme_lines.append('#### 转换 GLM-130B 权重')
+            readme_lines.append(
+                '最后，你需要将GLM-130B的权重按照实际需求进行转换：')
+            readme_lines.append('```bash')
+            readme_lines.append(glm_130b_python_code)
+            readme_lines.append('```')
+            readme_lines.append('')
+        if wandb_python_code:
+            readme_lines.append('#### 登陆 wandb')
+            readme_lines.append(
+                '请在shell中运行以下代码登陆wandb')
+            readme_lines.append('```bash')
+            readme_lines.append(wandb_python_code)
+            readme_lines.append('```')
+        readme_lines.append('##### 训练操作')
+        readme_lines.append(
+            '请在服务器中手动执行以下代码，开始训练：')
+        readme_lines.append('```bash')
+        readme_lines.append(cmd)
+        readme_lines.append('```')
+        readme_lines.append('')
+        readme_finally = '### 引用\n\n本项目为[神经理解](https://github.com/WENGSYX/Neural-Comprehension)的伴生项目。如果您对我们的项目感兴趣，欢迎引用。\n\n```\n@misc{weng2023mastering,\n      title={Mastering Symbolic Operations: Augmenting Language Models with Compiled Neural Networks}, \n      author={Yixuan Weng and Minjun Zhu and Fei Xia and Bin Li and Shizhu He and Kang Liu and Jun Zhao},\n      year={2023},\n      eprint={2304.01665},\n      archivePrefix={arXiv},\n      primaryClass={cs.CL}\n}\n```\n\n### 免责声明\n\n**本项目相关资源仅供学术研究之用，严禁用于商业用途。**\n使用涉及第三方代码的部分时，请严格遵循相应的开源协议。模型生成的内容受模型计算、随机性和量化精度损失等因素影响，本项目不对其准确性作出保证。对于模型输出的任何内容，本项目不承担任何法律责任，亦不对因使用相关资源和输出结果而可能产生的任何损失承担责任。\n'
+
+    else:
+        readme_lines.append('# Train the model on another server using Lingo')
+        readme_lines.append('***Welcome to Lingo***, we can provide you with various training methods you want')
+        readme_lines.append('')
+        readme_lines.append('### Installation')
+        readme_lines.append(
+            'For details, please refer to [Github Guide](https://github.com/WENGSYX/Lingo/blob/main/QA/readme.md)')
+        readme_lines.append('')
+
+        readme_lines.append('### Operation')
+        if ARGS['model'] == 'GLM-130B':
+            readme_lines.append('#### Download GLM-130B')
+            readme_lines.append(
+                'You can download the weights of GLM-130B here: https://docs.google.com/forms/d/e/1FAIpQLSehr5Dh_i3TwACmFFi8QEgIVNYGmSPwV0GueIcsUev0NEfUug/viewform?usp=sf_link')
+            readme_lines.append('')
+            readme_lines.append('#### Merge GLM-130B')
+            readme_lines.append('Then you need to merge the compressed files and unzip them into a folder')
+            readme_lines.append('```bash')
+            readme_lines.append('cat glm-130b-sat.tar.part_* > glm-130b-sat.tar')
+            readme_lines.append('tar xvf glm-130b-sat.tar')
+            readme_lines.append('```')
+            readme_lines.append('')
+            readme_lines.append('#### Convert GLM-130B weights')
+            readme_lines.append('Finally, you need to convert the GLM-130B weights as needed:')
+            readme_lines.append('```bash')
+            readme_lines.append(glm_130b_python_code)
+            readme_lines.append('```')
+            readme_lines.append('')
+        if wandb_python_code:
+            readme_lines.append('#### Login wandb')
+            readme_lines.append('Please run the following code in shell to login wandb')
+            readme_lines.append('```bash')
+            readme_lines.append(wandb_python_code)
+            readme_lines.append('```')
+        readme_lines.append('##### Training operation')
+        readme_lines.append('Please manually execute the following code on the server to start training:')
+        readme_lines.append('```bash')
+        readme_lines.append(cmd)
+        readme_lines.append('```')
+        readme_lines.append('')
+        readme_finally = '### Cite\n\nThis project is an accompanying project of [Neural Comprehension](https://github.com/WENGSYX/Neural-Comprehension). If you are interested in our project, please feel free\nto quote.\n\n```\n@misc{weng2023mastering,\n      title={Mastering Symbolic Operations: Augmenting Language Models with Compiled Neural Networks}, \n      author={Yixuan Weng and Minjun Zhu and Fei Xia and Bin Li and Shizhu He and Kang Liu and Jun Zhao},\n      year={2023},\n      eprint={2304.01665},\n      archivePrefix={arXiv},\n      primaryClass={cs.CL}\n}\n```\n\n### Disclaimers\n\n**The resources related to this project are for academic research purposes only and are strictly prohibited from\ncommercial use** When using parts involving third-party code, please strictly follow the corresponding open source\nprotocol. The content generated by the model is affected by factors such as model calculation, randomness, and loss of\nquantification accuracy. This project does not guarantee its accuracy. For any content output by the model, this project\ndoes not assume any legal responsibility, nor is it liable for any losses that may arise from the use of relevant\nresources and output results\n'
+
+    readme_lines.append(readme_finally)
+
+    return readme_lines
+
 
 if __name__ == '__main__':
     let_lingo()
