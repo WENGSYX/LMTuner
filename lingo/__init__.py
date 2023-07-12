@@ -3,6 +3,8 @@ import pynvml
 import time
 import json
 from lingo.setting import *
+from lingo.deepspeed_file import get_deepspeed
+import subprocess
 
 
 
@@ -175,41 +177,126 @@ def let_lingo_conversation(ARGS):
         if Now_Break:
             break
 
-    print(ARGS)
+
+    cmd = get_cmd(ARGS)
+    if ARGS['Train_This_Machine']:
+        if launch_cmd(cmd) == 0:
+            print_stream(
+                '\033[0;36m[AI] Now we have successed for trian the model !\033[0m')
+
+    else:
+        write_readme(ARGS,cmd)
+        print_stream(
+            f'\033[0;36m[AI] You will train the model in other machines with GPUs, and I have written a readme ({os.path.dirname(os.path.abspath (__file__))}/readme.md) for you. You can refer to its commands. \033[0m')
+
+
+
+
+def launch_cmd(cmd):
+    p = subprocess.Popen(cmd, shell=True)
+    p.wait()
+    return p.returncode
 
 
 def get_cmd(ARGS):
     cmd = "deepspeed "
     if ARGS['model'] == 'GLM-130B' and ARGS['GPU Number'] >= 4:
-        cmd += '--include localhost:{} '.format(','.join([str(i) for i in list(range(ARGS['GPU Number'] // 4))]))
+        cmd += '--include localhost:{} '.format(','.join([str(i) for i in list(range(ARGS['GPU Number'] // 4 * 4))]))
     else:
         cmd += '--include localhost:{} '.format(','.join([str(i) for i in list(range(ARGS['GPU Number']))]))
 
+    if ARGS['method']=='QLoRA' and ARGS['Quantization'] not in [4,8]:
+        ARGS['Quantization'] = 8
+
     cmd += "main.py --seed 1234 "
     if ARGS['model'] == 'GLM-130B':
+        print_stream(
+            '\033[0;36m[AI] Due to the need to manually download the weight of GLM-130B, please follow my instructions (See in https://github.com/THUDM/GLM-130B#model-weights)\033[0m')
+        print_stream(
+            '\033[0;36m[AI] Download the GLM-130B checkpoint from: https://docs.google.com/forms/d/e/1FAIpQLSehr5Dh_i3TwACmFFi8QEgIVNYGmSPwV0GueIcsUev0NEfUug/viewform?usp=sf_link \033[0m')
+        print('')
+        print_stream('\033[0;36m[AI] Merge them and extract it: \033[0m')
+        print_stream('\033[0;36m[AI] cat glm-130b-sat.tar.part_* > glm-130b-sat.tar \033[0m')
+        print_stream('\033[0;36m[AI] tar xvf glm-130b-sat.tar \033[0m')
+        print('')
+        print_stream('\033[0;36m[AI] Can you tell me the absolute location of the glm-130b-sat folder? \033[0m')
+        input_folder = input('\033[0;36m[Answer] \033[0m')
+        print_stream(
+            '\033[0;36m[AI] We are going to convert the model weights next. You need to tell me the absolute location of the new file. \033[0m')
+        output_folder = input('\033[0;36m[Answer] \033[0m')
+
+        print_stream(
+            '\033[0;36m[AI] Let"s conversion the checkpoint to change the tensor parallel (tools/convert_tp.py -> https://github.com/THUDM/GLM-130B): \033[0m')
+
         if ARGS['GPU Number'] >= 8:
             cmd += '--model-parallel-size {} '.format(8)
+            target_tp = 8
         elif ARGS['GPU Number'] >= 4:
             cmd += '--model-parallel-size {} '.format(4)
+            target_tp = 4
         elif ARGS['GPU Number'] >= 2:
             cmd += '--model-parallel-size {} '.format(2)
+            target_tp = 2
+        else:
+            target_tp = 1
 
-        cmd += '--num-layers 70 --hidden-size 12288 --inner-hidden-size 32768 --vocab-size 150528 --num-attention-heads 96 '
+        if ARGS['method']=='QLoRA':
+            qlora = f'--quantization-bit-width {ARGS["Quantization"]}'
+            cmd += '--from-quantized-checkpoint '
+        else:
+            qlora = ''
+        print_stream(
+            f'\033[0;36m[AI] python tools/convert_tp.py --input-folder {input_folder} --output-folder {output_folder} --target-tp {target_tp} {qlora} \033[0m')
+        input('\033[0;36m[AI] If you have completed these operations, please let me know at any time. \033[0m')
+        print('')
+        cmd += f'--num-layers 70 --hidden-size 12288 --inner-hidden-size 32768 --vocab-size 150528 --layernorm-order post --num-attention-heads 96 --models GLM-130B '
+        cmd += f'--load {output_folder} '
+
         log_interval = 1
     else:
         cmd += '--model {} '.format(ARGS['model'])
         log_interval = 10
 
     if ARGS['method'] == 'LoRA':
-        cmd += '--use_lora --lora_rank {} '.format(ARGS['lora_rank'])
-    if ARGS['method'] == 'QLoRA':
-        cmd += '--use_lora --quantization-bit-width {} --lora_rank {} '.format(ARGS['Quantization'], ARGS['lora_rank'])
-    if ARGS['method'] == 'LOMO':
-        cmd += '--use_lomo '
+        cmd += '--use_lora 1 --lora_rank {} '.format(ARGS['lora_rank'])
+    if ARGS['method'] == 'QLoRA':  # TODO 使用QLoRA时，CPU-offload必须设置为false
+        cmd += '--use_lora 1 --quantization-bit {} --lora_rank {} '.format(ARGS['Quantization'], ARGS['lora_rank'])
+    if ARGS['method'] == 'LOMO':  # TODO LOMO必须要ZeRO-Stage3和bf16
+        cmd += '--use_lomo 1'
 
-    cmd += f'--fp16 --dataset {"WENGSYX/"+ARGS["data"]} --train-data {ARGS["data"]} --valid-data {ARGS["data"]} --max_seq_length {ARGS["max length"]} --no-load-rng --warmup .02 --checkpoint-activations --save-interval {ARGS["save interval"]} --save "{ARGS["save path"]}" --split 1 --eval-interval 10 --eval-batch-size 2 --zero-stage 1 --lr {ARGS["learn rate"]} --num-workers 0 --log-interval {log_interval}'
+    print_stream(
+        '\033[0;36m[AI] By the way, do you want to use Wandb to record logs? \033[0m')
+    wandb_api = input(
+        '\033[0;36m[AI] If so, please provide Wandb"s API KEY, which may be located in https://wandb.ai/settings. Of course, if you enter No, we can skip this step \033[0m')
+    if len(wandb_api) >= 10:
+        if launch_cmd('wandb login 1234') == 0:
+            cmd += '--wandb 1'
+        else:
+            print_stream(
+                '\033[0;36m[WARM] The wandb raise ERROR, but we can continue without wandb. \033[0m')
+
+    if ARGS['data'] in LINGO_SUPPORT_DATASET:
+        dataset = "WENGSYX/" + ARGS["data"]
+    else:
+        dataset = ARGS['data']
+
+    cmd += f'--fp16 --dataset {dataset} --train-data {ARGS["data"]} --valid-data {ARGS["data"]} --max_seq_length {ARGS["max length"]} --epochs {ARGS["epoch"]}  --train-iters 0  --no-load-rng --warmup .02 --checkpoint-activations --save-interval {ARGS["save interval"]} --save "{ARGS["save path"]}" --split 1 --eval-interval 1000000 --eval-batch-size 2 --lr {ARGS["learn rate"]} --num-workers 0 --log-interval {log_interval} '
+
+    cmd += '--deepspeed_config ./ds_config.json'
+
+    ds_config = get_deepspeed(ARGS)
+    with open('./ds_config.json','w',encoding='utf-8') as f:
+        f.write(ds_config)
+
     return cmd
 
+def write_readme(ARGS,cmd):
+    readme_lines = []
+    if ARGS['language'] == 'Chinese':
+        readme_lines.append('# 如何使用Lingo在另一台服务器中训练模型')
+        readme_lines.append('*** 欢迎来到Lingo ***,我们能够为你提供各种你想要的训练方式')
+        readme_lines.append('### 安装环境')
+        readme_lines.append('***具体过程请参考[Github源码](https://github.com/microsoft/Megatron-DeepSpeed)')
 
 if __name__ == '__main__':
     let_lingo()

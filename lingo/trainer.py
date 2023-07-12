@@ -236,15 +236,16 @@ def setup_model_untrainable_params_and_optimizer(args, model, config_params=None
                     config_params=args.deepspeed_config
                     if version.parse(deepspeed.version) < version.parse("0.9.0")
                     else None)
-                optimizer = LOMO(model, args.lr, 1.0, None)
+                optimizer = LOMO(model, args.lr, 1.0, None,args)
                 print('*****Use LOMO Optimizer*****')
 
             else:
-                #optimizer = Tiger(param_groups)
+                optimizer = Tiger(param_groups)
 
                 print_rank0("DeepSpeed is enabled.", level='DEBUG')
                 model, optimizer, _, _ = deepspeed.initialize(
                     model=model,
+                    optimizer=optimizer,
                     args=args,
                     mpu=mpu,
                     dist_init_required=False,
@@ -477,20 +478,20 @@ def train_step(data_iterator, model, optimizer, lr_scheduler,
 
         if args.use_lomo:
 
-            if 1:
-                timers('backward').start()
-                optimizer.grad_norm(lm_loss)
-                timers('backward').stop()
-                skipped_iter = 0
+            timers('backward').start()
+            optimizer.grad_norm(lm_loss)
+            timers('backward').stop()
+            skipped_iter = 0
 
-                model.optimizer.get_param_coordinator(training=True).reset_step()
-                timers('forward').start()
-                forward_ret2 = forward_step(data_iterator, model, args, timers, **kwargs)
-                if isinstance(forward_ret, tuple):
-                    lm_loss2, metrics = forward_ret2
-                else:
-                    lm_loss2, metrics = forward_ret2, {}
-                timers('forward').stop()
+            model.optimizer.get_param_coordinator(training=True).reset_step()
+            timers('forward').start()
+            forward_ret2 = forward_step(data_iterator, model, args, timers, **kwargs)
+            if isinstance(forward_ret, tuple):
+                lm_loss2, metrics = forward_ret2
+            else:
+                lm_loss2, metrics = forward_ret2, {}
+            timers('forward').stop()
+
             lr_scheduler.step()
             lr = lr_scheduler.get_lr()
             timers('backward').start()

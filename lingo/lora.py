@@ -9,7 +9,7 @@ from sat.model.base_model import BaseMixin
 import math
 from sat.helpers import print_all
 from sat.model.transformer import RowParallelLinear, ColumnParallelLinear
-
+from tqdm import tqdm
 class HackLinear(nn.Linear):
     def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs):
         if prefix + 'weight' in state_dict:
@@ -90,7 +90,6 @@ class LoraLinear(nn.Module):
         else:
             base_cls, kwargs = map_cls[original_cls]
             self.original = base_cls(in_dim, out_dim, **kwargs)
-            print(in_dim,out_dim)
         out_dim = int(out_dim/num_scale2)
         in_dim = int(in_dim/num_scale1)
         self.matrix_A = HackParameterList([nn.Parameter(torch.empty((r, in_dim))) for _ in range(partition)])
@@ -176,7 +175,8 @@ class LoraMixin(BaseMixin):
                 num_attention_heads = None,
                 hidden_size_per_attention_head = None,
                 qlora = False,
-                cross_attention = True):
+                cross_attention = True,
+                 tp_parallel=1):
         super().__init__()
         self.r = r
         self.lora_alpha = lora_alpha
@@ -192,14 +192,13 @@ class LoraMixin(BaseMixin):
         self.hidden_size_per_attention_head = hidden_size_per_attention_head
         self.qlora = qlora
         self.cross_attention = cross_attention
+        self.tp_parallel = tp_parallel
 
     def reinit(self, parent_model):
-        for i in self.layer_range:
-            print(f'replacing layer {i} attention with lora')
-            parent_model.transformer.layers[i].attention.dense = replace_linear_with_lora(parent_model.transformer.layers[i].attention.dense, 1, self.r,8,1, self.lora_alpha, self.lora_dropout, qlora=self.qlora)
-            parent_model.transformer.layers[i].attention.query_key_value = replace_linear_with_lora(parent_model.transformer.layers[i].attention.query_key_value, 3, self.r,1,8, self.lora_alpha, self.lora_dropout, head_first=self.head_first, num_attention_heads=self.num_attention_heads, hidden_size_per_attention_head=self.hidden_size_per_attention_head, qlora=self.qlora)
+        for i in tqdm(self.layer_range,desc='[INFO] Now replacing the attention to LoRA'):
+            parent_model.transformer.layers[i].attention.dense = replace_linear_with_lora(parent_model.transformer.layers[i].attention.dense, 1, self.r,self.tp_parallel,1, self.lora_alpha, self.lora_dropout, qlora=self.qlora)
+            parent_model.transformer.layers[i].attention.query_key_value = replace_linear_with_lora(parent_model.transformer.layers[i].attention.query_key_value, 3, self.r,1,self.tp_parallel, self.lora_alpha, self.lora_dropout, head_first=self.head_first, num_attention_heads=self.num_attention_heads, hidden_size_per_attention_head=self.hidden_size_per_attention_head, qlora=self.qlora)
             if self.cross_attention and parent_model.transformer.layers[i].is_decoder:
-                print(f'replacing layer {i} cross attention with lora')
                 parent_model.transformer.layers[i].cross_attention.dense = replace_linear_with_lora(parent_model.transformer.layers[i].cross_attention.dense, 1, self.r, self.lora_alpha, self.lora_dropout, qlora=self.qlora)
                 parent_model.transformer.layers[i].cross_attention.query = replace_linear_with_lora(parent_model.transformer.layers[i].cross_attention.query, 1, self.r, self.lora_alpha, self.lora_dropout, qlora=self.qlora)
                 parent_model.transformer.layers[i].cross_attention.key_value = replace_linear_with_lora(parent_model.transformer.layers[i].cross_attention.key_value, 2, self.r, self.lora_alpha, self.lora_dropout, qlora=self.qlora)

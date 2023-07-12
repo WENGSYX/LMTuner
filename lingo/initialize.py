@@ -3,8 +3,8 @@ import torch
 import time
 
 from lingo.quantization import quantize
-
-from sat import get_args, get_tokenizer
+from argments import get_args
+from sat import get_tokenizer
 from sat.arguments import initialize_distributed
 from sat.training.model_io import load_checkpoint
 from sat.model import GLM130B

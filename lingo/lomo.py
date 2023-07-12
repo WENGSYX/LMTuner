@@ -405,7 +405,7 @@ class LOMO(Optimizer):
     :param clip_grad_value: 梯度裁剪的值域阈值
     """
 
-    def __init__(self, model, lr=1e-3, clip_grad_norm=None, clip_grad_value=None):
+    def __init__(self, model, lr=1e-3, clip_grad_norm=None, clip_grad_value=None,args=None):
         self.model = model
         self.lr = lr
         self.local_rank = int(os.environ["LOCAL_RANK"])
@@ -419,6 +419,7 @@ class LOMO(Optimizer):
         self.gather_norm = False
         self.grad_norms = []
         self.clip_coef = None
+        self.args = args
 
         # check if zero3 is enabled
         p0 = list(self.model.parameters())[0]
@@ -520,26 +521,44 @@ class LOMO(Optimizer):
                             # we adopt two backward pass for gradient norm compuation and parameter update, respectively.
                             self.grad_norms.append(torch.norm(grad_fp32, 2.0))
                         else:  # update param
-                            one_dim_grad_fp32 = grad_fp32.view(-1)
-                            partitioned_grad_fp32 = one_dim_grad_fp32
+                            if self.args.models == 'GLM-130B':
+                                one_dim_grad_fp32 = grad_fp32.view(-1)
+                                partitioned_grad_fp32 = one_dim_grad_fp32
 
-                            if self.clip_grad_value is not None:
-                                # Clipping gradients by their value
-                                partitioned_grad_fp32.clamp_(min=-self.clip_grad_value, max=self.clip_grad_value)
-                            if self.clip_grad_norm is not None and self.clip_grad_norm > 0 and self.clip_coef is not None:
-                                # Normalize the gradient according to its norm (computed in another pass)
-                                partitioned_grad_fp32.mul_(self.clip_coef)
+                                if self.clip_grad_value is not None:
+                                    # Clipping gradients by their value
+                                    partitioned_grad_fp32.clamp_(min=-self.clip_grad_value, max=self.clip_grad_value)
+                                if self.clip_grad_norm is not None and self.clip_grad_norm > 0 and self.clip_coef is not None:
+                                    # Normalize the gradient according to its norm (computed in another pass)
+                                    partitioned_grad_fp32.mul_(self.clip_coef)
 
-                            partitioned_p = param_fp32
+                                partitioned_p = param_fp32
 
-                            try:
+                                try:
+                                    partitioned_p.add_(partitioned_grad_fp32, alpha=-self.lr)
+                                except:
+                                    print('pp',partitioned_p.shape)
+                                    print('pg',partitioned_grad_fp32.shape)
+                                    partitioned_p.add_(partitioned_grad_fp32, alpha=-self.lr)
+
+                                p.ds_tensor[:] = partitioned_p
+                            else:
+                                one_dim_grad_fp32 = grad_fp32.view(-1)
+                                partition_size = p.ds_tensor.numel()
+                                start = partition_size * self.local_rank
+                                end = min(start + partition_size, grad_fp32.numel())
+                                partitioned_grad_fp32 = one_dim_grad_fp32.narrow(0, start, end - start)
+
+                                if self.clip_grad_value is not None:
+                                    # Clipping gradients by their value
+                                    partitioned_grad_fp32.clamp_(min=-self.clip_grad_value, max=self.clip_grad_value)
+                                if self.clip_grad_norm is not None and self.clip_grad_norm > 0 and self.clip_coef is not None:
+                                    # Normalize the gradient according to its norm (computed in another pass)
+                                    partitioned_grad_fp32.mul_(self.clip_coef)
+
+                                partitioned_p = param_fp32.narrow(0, 0, end - start)
                                 partitioned_p.add_(partitioned_grad_fp32, alpha=-self.lr)
-                            except:
-                                print('pp',partitioned_p.shape)
-                                print('pg',partitioned_grad_fp32.shape)
-                                partitioned_p.add_(partitioned_grad_fp32, alpha=-self.lr)
-
-                            p.ds_tensor[:] = partitioned_p
+                                p.ds_tensor[: end - start] = partitioned_p
             return x
 
         return func

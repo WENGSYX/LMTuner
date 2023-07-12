@@ -1,7 +1,7 @@
 from sat import AutoModel
 from sat.model.finetune import PTuningV2Mixin
 from lingo.lora import LoraMixin
-from sat.training.model_io import load_checkpoint
+from lingo.models.model_io import load_checkpoint
 from sat.mpu import get_model_parallel_world_size, get_model_parallel_rank, get_model_parallel_group
 
 from lingo.quantization import quantize
@@ -84,7 +84,7 @@ def get_model_and_tokenizer(args):
 
 
     elif args.models == 'GLM-130B':
-        from sat.model.official import GLM130B as MODEL
+        from lingo.models.GLM130B_model import GLM130B as MODEL
         tokenizer = AutoTokenizer.from_pretrained('THUDM/chatglm-6b', trust_remote_code=True)
 
         def preprocess_function_train(examples):
@@ -115,9 +115,108 @@ def get_model_and_tokenizer(args):
 
             return model_inputs
 
-    elif args.models in ['llama-7B', 'llama-13B', 'llama-33B', 'llama-65B']:
-        from sat.model.official import LLaMAModel as MODEL
+    elif args.models in ['llama-7b', 'llama-13b', 'llama-33b', 'llama-65b']:
+        from lingo.models.LLAMA_model import LLaMAModel as MODEL
         tokenizer = LlamaTokenizer.from_pretrained('decapoda-research/llama-7b-hf', trust_remote_code=True)
+        tokenizer.pad_token_id = 1
+
+        def preprocess_function_train(examples):
+
+            prefix = args.source_prefix if args.source_prefix is not None else ""
+
+            model_inputs = {
+                "input_ids": [],
+                "labels": [],
+            }
+            for i in range(len(examples[args.prompt_column])):
+                if examples[args.prompt_column][i] and examples[args.response_column][i]:
+                    prompt, answer = examples[args.prompt_column][i], examples[args.response_column][i]
+                    prompt = prefix + prompt
+                    a_ids = tokenizer.encode(text=prompt, add_special_tokens=True)
+                    b_ids = tokenizer.encode(text=answer, add_special_tokens=False)
+
+                    seq_length = len(a_ids) + len(b_ids) + 1
+
+                    input_id = a_ids + b_ids + [tokenizer.eos_token_id]
+                    label = [-100] * len(a_ids) + b_ids + [tokenizer.eos_token_id]
+
+                    input_ids = input_id + (args.max_seq_length - seq_length) * [tokenizer.pad_token_id]
+                    labels = label + (args.max_seq_length - seq_length) * [-100]
+
+
+                    model_inputs["input_ids"].append(input_ids[:args.max_seq_length])
+                    model_inputs["labels"].append(labels[:args.max_seq_length])
+
+            return model_inputs
+
+    elif args.models in ['gpt2']:
+        from lingo.models.GPT2_model import GPT2Model as MODEL
+        tokenizer = AutoTokenizer.from_pretrained('gpt2')
+        tokenizer.pad_token_id = 50256
+
+        def preprocess_function_train(examples):
+
+            prefix = args.source_prefix if args.source_prefix is not None else ""
+
+            model_inputs = {
+                "input_ids": [],
+                "labels": [],
+            }
+            for i in range(len(examples[args.prompt_column])):
+                if examples[args.prompt_column][i] and examples[args.response_column][i]:
+                    prompt, answer = examples[args.prompt_column][i], examples[args.response_column][i]
+                    prompt = prefix + prompt
+                    a_ids = tokenizer.encode(text=prompt, add_special_tokens=True)
+                    b_ids = tokenizer.encode(text=answer, add_special_tokens=False)
+
+                    seq_length = len(a_ids) + len(b_ids) + 1
+
+                    input_id = a_ids + b_ids + [tokenizer.eos_token_id]
+                    label = [-100] * len(a_ids) + b_ids + [tokenizer.eos_token_id]
+
+                    input_ids = input_id + (args.max_seq_length - seq_length) * [tokenizer.pad_token_id]
+                    labels = label + (args.max_seq_length - seq_length) * [-100]
+
+
+                    model_inputs["input_ids"].append(input_ids[:args.max_seq_length])
+                    model_inputs["labels"].append(labels[:args.max_seq_length])
+
+            return model_inputs
+
+    elif args.models in ['gpt-neo-1.3b']:
+        from lingo.models.GPTNeo_model import GPTNeoModel as MODEL
+        from transformers import GPT2Tokenizer
+        tokenizer = GPT2Tokenizer.from_pretrained('EleutherAI/gpt-neo-1.3B')
+        tokenizer.pad_token_id = 50256
+
+        def preprocess_function_train(examples):
+
+            prefix = args.source_prefix if args.source_prefix is not None else ""
+
+            model_inputs = {
+                "input_ids": [],
+                "labels": [],
+            }
+            for i in range(len(examples[args.prompt_column])):
+                if examples[args.prompt_column][i] and examples[args.response_column][i]:
+                    prompt, answer = examples[args.prompt_column][i], examples[args.response_column][i]
+                    prompt = prefix + prompt
+                    a_ids = tokenizer.encode(text=prompt, add_special_tokens=True)
+                    b_ids = tokenizer.encode(text=answer, add_special_tokens=False)
+
+                    seq_length = len(a_ids) + len(b_ids) + 1
+
+                    input_id = a_ids + b_ids + [tokenizer.eos_token_id]
+                    label = [-100] * len(a_ids) + b_ids + [tokenizer.eos_token_id]
+
+                    input_ids = input_id + (args.max_seq_length - seq_length) * [tokenizer.pad_token_id]
+                    labels = label + (args.max_seq_length - seq_length) * [-100]
+
+
+                    model_inputs["input_ids"].append(input_ids[:args.max_seq_length])
+                    model_inputs["labels"].append(labels[:args.max_seq_length])
+
+            return model_inputs
 
     else:
         print(f'[ERROR] No Support {args.models}')
@@ -134,7 +233,7 @@ def get_model_and_tokenizer(args):
                 # If you use lora on other "normal" Transformer, just use it with head_first=False (by default)
                 self.add_mixin("lora", LoraMixin(args.num_layers, args.lora_rank, qlora=False, head_first=False,
                                                  num_attention_heads=args.num_attention_heads,
-                                                 hidden_size_per_attention_head=args.hidden_size // args.num_attention_heads),
+                                                 hidden_size_per_attention_head=args.hidden_size // args.num_attention_heads,tp_parallel=args.model_parallel_size),
                                reinit=True)
             if args.use_ptuning:
                 self.add_mixin("ptuning", PTuningV2Mixin(args.num_layers, args.hidden_size // args.num_attention_heads,
@@ -172,7 +271,9 @@ def get_model_and_tokenizer(args):
 
     if args.models != 'GLM-130B':
         model, args = FineTuneModel.from_pretrained(args.models, args)
-
+        if args.quantization_bit:
+            # Quantize model before moving to GPU
+            model = quantize(model, args.quantization_bit, lora=args.use_lora)
     else:
         for i in range(get_model_parallel_world_size()):
             if get_model_parallel_rank() == i:
@@ -187,9 +288,9 @@ def get_model_and_tokenizer(args):
                 # Load checkpoint
                 load_checkpoint(model, args)
 
-                if args.quantization_bit_width is not None and not args.from_quantized_checkpoint:
+                if args.quantization_bit is not None and not args.from_quantized_checkpoint:
                     # Quantize model before moving to GPU
-                    model = quantize(model, args.quantization_bit_width, lora=args.use_lora)
+                    model = quantize(model, args.quantization_bit, lora=args.use_lora)
 
                 model = model.to(args.device)
     args.mode = 'finetune'

@@ -108,11 +108,14 @@ def forward_step(data_iterator, model, args, timers):
 
     loss = loss.to(dtype)
     if args.wandb:
+        global Total_Tokens
         if torch.distributed.is_initialized():
             if torch.distributed.get_rank() == 0:
-                wandb.log({'Tokens': len(tokens.view(-1))*torch.distributed.get_world_size(), 'loss': loss.item()})
+                Total_Tokens += len(tokens.view(-1)) * torch.distributed.get_world_size()
+                wandb.log({'Tokens': Total_Tokens, 'loss': loss.item()})
         else:
-            wandb.log({'Tokens': len(tokens.view(-1)), 'loss': loss.item()})
+            Total_Tokens += len(tokens.view(-1))
+            wandb.log({'Tokens': Total_Tokens,'Loss': loss.item()})
     return loss, {'loss': loss}
 
 
@@ -152,13 +155,14 @@ if __name__ == '__main__':
         py_parser.add_argument('--pre_seq_len', type=int, default=8)
         py_parser.add_argument('--lora_rank', type=int, default=10)
         py_parser.add_argument('--use_ptuning', action="store_true")
-        py_parser.add_argument('--use_lora', action="store_true")
+        py_parser.add_argument('--use_lora', type=bool,default=False)
         py_parser.add_argument('--use_lomo', type=bool,default=False)
 
         py_parser.add_argument('--models', type=str, default="")
         py_parser.add_argument('--dataset', type=str, default="")
         py_parser.add_argument('--finetune', type=bool, default=True)
         py_parser.add_argument('--wandb', type=bool, default=False)
+        py_parser.add_argument('--quantization_bit', type=int, default=0)
 
     args = initialize(extra_args_provider=add_generation_specific_args)
 
@@ -167,9 +171,13 @@ if __name__ == '__main__':
         import wandb
         from pynvml import *
         import pynvml
+
+        Total_Tokens = 0
         pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
         if torch.distributed.is_initialized():
             if torch.distributed.get_rank() == 0:
+
                 wandb.init(
                     project=f"{time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(time.time()))}",
                     config={
@@ -180,22 +188,27 @@ if __name__ == '__main__':
                         "save interval": args.save_interval,
                         "learn_rate": args.lr,
                         "batch size": args.batch_size,
+                        "GPU": pynvml.nvmlDeviceGetName(handle),
                         "GPU Number": pynvml.nvmlDeviceGetCount(),
-                        "GPU Memory": str(round(pynvml.nvmlDeviceGetMemoryInfo(0).free / (1024 * 1024), 2)) + 'MB',
+                        "GPU Memory": str(round(pynvml.nvmlDeviceGetMemoryInfo(handle).total/ (1024 * 1024), 2)) + 'MB',
                         "GPU Driver": nvmlSystemGetDriverVersion()}
                 )
 
         else:
             wandb.init(
-                project=f"{args.save}",
+                project=f"{time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))}",
                 config={
                     "model": args.models,
                     "seed": args.seed,
                     "dataset": args.dataset,
-                    "save": args.save,
+                    "time": time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time())),
                     "save interval": args.save_interval,
                     "learn_rate": args.lr,
-                    "batch size": args.batch_size}
+                    "batch size": args.batch_size,
+                    "GPU": pynvml.nvmlDeviceGetName(handle),
+                    "GPU Number": pynvml.nvmlDeviceGetCount(),
+                    "GPU Memory": str(round(pynvml.nvmlDeviceGetMemoryInfo(handle).total / (1024 * 1024), 2)) + 'MB',
+                    "GPU Driver": nvmlSystemGetDriverVersion()}
             )
 
     model,tokenizer,args = get_model_and_tokenizer(args)
