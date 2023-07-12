@@ -18,6 +18,7 @@ Lingo的核心使命是通过低成本的方式使得大型语言模型在更多
 
 ## 🔄 最近更新
 
+* [2023/07/12] 开放Lingo训练代码，让我们轻松训练模型吧~
 * [2023/06/20] 开放[Lingo-dataset-v1](https://huggingface.co/datasets/WENGSYX/Lingo-dataset-v1)，总计1091条高质量中文对话式问答训练集
 
 ### 如何安装
@@ -27,8 +28,60 @@ git clone https://github.com/WENGSYX/Lingo
 pip install .
 ```
 
-### 创建你的特色数据集
+### 零门槛训练大模型
 
+Lingo是一个***零代码***+***零门槛***训练大模型的工具包。通过内置训练助手，你只需要用自然语言说明你的需求，Lingo就能全自动训练。
+我们预先提供了一些IFT数据集，同时也可以使用自定义的数据加载
+
+```bash
+python -m lingo
+```
+或者使用python代码调用lingo：
+```python
+from lingo import let_lingo
+
+let_lingo()
+```
+
+
+##### 然后就能够通过自然语言的形式，训练语言模型（在一台具有8卡A6000显卡的服务器中）
+```
+[INFO] This is a library for training language models with ease. 
+[INFO] In conversations with Lingo, the language model will be trained automatically according to your needs, without requiring any effort on your part 😊
+[INFO] Would you like to command Lingo through casual conversation? 
+[Answer] If yes, please type (Yes), let"s go~, If not, please type (No): yes
+
+[AI] Hello there! I"m your AI assistant, and I"m here to help you train your model. Before we get started, it"s important to have a clear plan and goal in mind. 
+[Answer] : 我想要训练一个医疗领域的大模型
+
+(AI] 好的，我们可以帮您选择医疗领域的大模型进行训练。首先，请问您打算使用我们提供的现有数据集 Ling-Hedical-V1，还是您有自己的数据集呢? 
+[Answer] : 我想用自己的数据集
+
+[AI] 好的，请将您的数据集配置为JSONL文件格式，然后将文件路径赋值给data字段，如果您不清楚如何配置，我可以为您解释。
+[AI] JSON 是一种简单的文件格式，灵活且方便处理大型教据集。在您的教据集中，每一行应该是一个独立的字典，字典的键为"input和"output"，例:{'input': "What is hypertension","output": "Hypertension, also known as high blood pressure, is a medical condition in which the force of blood against the walls of the arteries is consistently elevated, leading to increased pressure. This can cause damage to the blood vessels and organs throughout the body over time."
+[AI] 然后，您可以将数据集文件的绝对路径粘贴在这里，我会为您将它配置到模型训练中。
+[Answer] : /data/LLM/Lingo/lingo.json
+
+[AI] 已经将您的数据集路径设置为"/data/LLM/Lingo/lingojson"。接下来，我们需要为您的任务选择一个语言模型。模型的选择主要基于您的数据语言和显卡的显存。
+[AI] 考虑到您想要训练医疗领域的大模型，我推荐使用以下模型: GLM-130B，Llama-13b，Llama-33b，或者Llama-65b。您的显卡的显存和数量如何?对于不同显存，建议的模型和训练方法有一些差别。
+[AI] 您能方便告诉我你的显卡显存和数量吗? 这样我可以更准确地为您推荐模型和训练方法。
+[Answer] : 我的服务器，现在有4张A6000显卡
+
+[AI] 了解了，您的服务器上有4张A6000显卡，每张显卡的显存都是48GB。
+[AI] 在这种配置下，您可以选择一些比较大的模型进行训练。例如，可以选择 130B 的模型，使用QLORA的方式来进行训练
+[AI] 如果您对使用其他模型或训练方式有偏好，也可以告诉我，我们可以根据您的需要进行设定·您希望使用哪种模型进行训练呢?
+[Answer] : 可以的
+
+[AI] 已为您选择了GLH-130B模型进行训练。下一步，我们需要确定训练的方法。在当前的情况下，我建议使用LORA方法进行训练，QLORA方法仅微调模型的部分参数，可以建低显卡显存的要求，是最适合训练大植型的一种方法。如果您选择QLoRA训练方式，那我们推荐使用INT量化以优化显存。您是否同意使用QLoRA方法以及INT4量化？
+[Answer] : 同意
+
+...
+(自动填写ds_config并调用Deepspeed使用QLoRA+GLM-130B训练模型)
+```
+
+
+### 创建你的特色数据集
+我们还允许创建特色数据集，包括添加新的样本和指定模型名称等。
 ```python
 from lingo.dataset import LingoDataset
 
@@ -54,7 +107,7 @@ dataset = lingo_dataset.get_list()
 Version-1 目标 :
 
 - [x] 开源高质量中文数据集
-- [ ] 开源模型的微调代码
+- [x] 开源模型的微调代码
 - [ ] 开源模型权重
 
 Version-2 目标 :
