@@ -288,7 +288,7 @@ def get_model_and_tokenizer(args):
                 # Load checkpoint
                 load_checkpoint(model, args)
 
-                if args.quantization_bit is not None and not args.from_quantized_checkpoint:
+                if args.quantization_bit and not args.from_quantized_checkpoint:
                     # Quantize model before moving to GPU
                     model = quantize(model, args.quantization_bit, lora=args.use_lora)
 
