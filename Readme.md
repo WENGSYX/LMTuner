@@ -23,6 +23,7 @@ Lingo的核心使命是通过低成本的方式使得大型语言模型在更多
 
 ### 如何安装
 
+我们要求预先安装Apex和Deepspeed，安装教程可参考
 ```
 git clone https://github.com/WENGSYX/Lingo
 pip install .

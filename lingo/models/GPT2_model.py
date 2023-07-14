@@ -59,7 +59,8 @@ class GPT2AttnMixin(BaseMixin):
                     attention_probs = attention_dropout(attention_probs)
             else:
                 attention_probs = attention_dropout(attention_probs)
-        attention_probs = torch.tensor(attention_probs, dtype=value_layer.dtype)
+        if value_layer.dtype != attention_probs.dtype:
+            attention_probs = torch.tensor(attention_probs, dtype=value_layer.dtype)
         context_layer = torch.matmul(attention_probs, value_layer)
         return context_layer
 

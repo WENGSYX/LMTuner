@@ -407,7 +407,7 @@ def train(model, optimizer, lr_scheduler,
 
         # Checkpointing
         if args.save and args.save_interval and args.iteration % args.save_interval == 0:
-            save_model(args.iteration)
+            save_checkpoint(args.iteration, model, optimizer, lr_scheduler, args)
 
         # Evaluation
         if args.eval_interval and args.iteration % args.eval_interval == 0 and args.do_valid:
@@ -443,7 +443,8 @@ def train_step(data_iterator, model, optimizer, lr_scheduler,
     while True:
         # Forward model for one step.
         timers('forward').start()
-        forward_ret = forward_step(data_iterator, model, args, timers, **kwargs)
+        lr = lr_scheduler.get_lr()
+        forward_ret = forward_step(data_iterator, model, args, timers,lr, **kwargs)
         if isinstance(forward_ret, tuple):
             lm_loss, metrics = forward_ret
         else:
@@ -485,7 +486,7 @@ def train_step(data_iterator, model, optimizer, lr_scheduler,
 
             model.optimizer.get_param_coordinator(training=True).reset_step()
             timers('forward').start()
-            forward_ret2 = forward_step(data_iterator, model, args, timers, **kwargs)
+            forward_ret2 = forward_step(data_iterator, model, args, timers,lr, **kwargs)
             if isinstance(forward_ret, tuple):
                 lm_loss2, metrics = forward_ret2
             else:

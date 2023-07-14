@@ -30,9 +30,9 @@ def get_deepspeed(ARGS):
       }"""
 
     if ARGS['method'] == 'QLoRA':
-        default_deepspeed_config.replace('"cpu_offload": true','"cpu_offload": false')
+        default_deepspeed_config = default_deepspeed_config.replace('"cpu_offload": true','"cpu_offload": false')
 
-    default_deepspeed_config.replace('"train_micro_batch_size_per_gpu": 2',f'"train_micro_batch_size_per_gpu": {ARGS["batch size"]}')
-    default_deepspeed_config.replace('"gradient_accumulation_steps": 1',f'"gradient_accumulation_steps": {ARGS["gradient accumulation"]}')
+    default_deepspeed_config = default_deepspeed_config.replace('"train_micro_batch_size_per_gpu": 2',f'"train_micro_batch_size_per_gpu": {ARGS["batch size"]}')
+    default_deepspeed_config = default_deepspeed_config.replace('"gradient_accumulation_steps": 1',f'"gradient_accumulation_steps": {ARGS["gradient accumulation"]}')
     return default_deepspeed_config
 

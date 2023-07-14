@@ -85,10 +85,12 @@ def forward_step_eval(data_iterator, model, args, timers):
                                                     compute_metrics((outputs.cpu(), labels.cpu())).items()}
 
 
-def forward_step(data_iterator, model, args, timers):
+def forward_step(data_iterator, model, args, timers,lr=None):
     """Forward step."""
 
     # Get the batch.
+    if lr is None:
+        lr = 0
     timers('batch generator').start()
     tokens, labels = get_batch(
         data_iterator, args, timers)
@@ -111,11 +113,11 @@ def forward_step(data_iterator, model, args, timers):
         global Total_Tokens
         if torch.distributed.is_initialized():
             if torch.distributed.get_rank() == 0:
-                Total_Tokens += len(tokens.view(-1)) * torch.distributed.get_world_size()
-                wandb.log({'Tokens': Total_Tokens, 'loss': loss.item()})
+                Total_Tokens += sum((shift_labels!=-100).view(-1)) * torch.distributed.get_world_size()
+                wandb.log({'Tokens': Total_Tokens, 'Loss': loss.item(),'lreaning rate':lr})
         else:
-            Total_Tokens += len(tokens.view(-1))
-            wandb.log({'Tokens': Total_Tokens,'Loss': loss.item()})
+            Total_Tokens += sum((shift_labels!=-100).view(-1))
+            wandb.log({'Tokens': Total_Tokens,'Loss': loss.item(),'lreaning rate':lr})
     return loss, {'loss': loss}
 
 
