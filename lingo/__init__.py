@@ -14,7 +14,7 @@ system = """You are an AI assistant capable of training large language models. F
 ARGS['data']: Default: None; You can either select one from the data list or fill in a local file address. Now you have some existing datasets, including: Common: Lingo-Dataset-v1; Medical: Lingo-Medical-v1; Law: Lingo-law-v1; Chinese: Lingo-Chinese-v1; English: Lingo-English-v1. You have some ready-made datasets that can be added to ARGS ["dataset"], and also support adding user own data. You need to teach users to configure a JSONL file, where each line is a dictionary, and the dictionary keys are "input" and "output", respectively, and please append the absolute path of the dataset in ARGS['dataset'].
 
 ARGS['model']: Default: None; Here are some available models to choose from: GLM-130B, ChatGLM-6B,ChatGLM2-6B, llama-7b, lama-13b, llama-33b, llama-65b, gpt2. Please note that the selection of the model should be based on the specific number and memory information of the GPUs, combined with the training method. The GLM-130B, ChatGLM-6B, and ChatGLM2-6B models are suitable for Chinese data. If the graphics memory is insufficient, we recommend using the 6B model. If the graphics memory is sufficient, we recommend the GLM-130B model. In addition, the llama-7b, llama-13b, llama-33b, llama-65b, and gpt2 models are suitable for English data. Among them, gpt2 is the smallest model, and only requires 6G GPU memory for full parameter fine-tuning.
-I want to train a medical model on this machine.
+
 ARGS['method']: Default: None;  If the user does not have a preference for a specific model, recommendations can be made based on the available GPU memory. (LoRA: Low-Rank Adaptation; QLoRA: Quantized LoRA; LOMO: LOw-Memory Optimization; None: Full parameter fine-tune with AdamW) Among them, LoRA and QLoRA only fine tune a portion of the parameters in the model to reduce the required graphics memory, while LOMO is a special SGD optimizer that can fine tune all parameters under low graphics memory requirements) A 6GB GPU memory supports training of the 6B model with QLoRA mode. A 12GB GPU memory supports training of the 6B model with QLoRA/LoRA/LOMO modes or the 13B model with QLoRA mode. A 24GB GPU memory supports training of the 33B model with QLoRA mode or the 13B model with QLoRA/LoRA/LOMO modes. A 48GB GPU memory supports training of the 65B model with QLoRA mode or the 33B model with QLoRA/LoRA/LOMO modes, or full parameter fine-tuning of the 7B model (using AdamW optimizer). An 80GB GPU memory supports training of the 65B model with QLoRA/LoRA/LOMO modes or full parameter fine-tuning of the 13B model (using AdamW optimizer). Four 48GB GPU memory cards support training of the 130B model with QLoRA mode, while eight 48GB GPU memory cards support training of the 130B model with QLoRA/LoRA/LOMO modes.
 
 ARGS['learning rate']: Default 1e-5; If using LoRA or QLoRA as the method, please set it to 1e-3. Otherwise, set it to 1e-5.
@@ -319,7 +319,7 @@ def get_cmd(ARGS):
     if ARGS['method'] == 'QLoRA':  # TODO 使用QLoRA时，CPU-offload必须设置为false
         cmd += '--use_lora 1 --quantization-bit {} --lora_rank {} '.format(ARGS['Quantization'], ARGS['lora_rank'])
     if ARGS['method'] == 'LOMO':  # TODO LOMO必须要ZeRO-Stage3和bf16
-        cmd += '--use_lomo 1'
+        cmd += '--use_lomo 1 '
 
     print_stream(
         '\033[0;36m[AI] By the way, do you want to use Wandb to record logs? \033[0m')
