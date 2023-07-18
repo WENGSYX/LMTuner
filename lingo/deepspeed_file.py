@@ -12,7 +12,7 @@ def get_deepspeed(ARGS):
         },
         "zero_force_ds_cpu_optimizer":false,
         "zero_optimization": {
-          "stage": 3,
+          "stage": 2,
           "cpu_offload": true,
           "contiguous_gradients": false,
           "overlap_comm": false,
@@ -28,6 +28,43 @@ def get_deepspeed(ARGS):
         },
         "wall_clock_breakdown": false
       }"""
+    if ARGS['method'] == 'LOMO':
+        default_deepspeed_config = """{
+                "train_micro_batch_size_per_gpu": 2,
+                "gradient_accumulation_steps": 1,
+                "steps_per_print": 1,
+                "gradient_clipping": 0.5,
+                "zero_allow_untested_optimizer": true,
+                "bf16": {
+                  "enabled": true
+                },
+                "zero_force_ds_cpu_optimizer":false,
+                "zero_optimization": {
+                    "stage": 3,
+                    "contiguous_gradients": true,
+                    "stage3_max_live_parameters": 1e9,
+                    "stage3_max_reuse_distance": 1e9,
+                    "stage3_prefetch_bucket_size": 1e7,
+                    "stage3_param_persistence_threshold": 1e5,
+                    "stage3_gather_16bit_weights_on_model_save": true,
+                    "reduce_bucket_size": 1e7,
+                    "reduce_scatter": true,
+
+                    "sub_group_size": 1e9,
+                    "offload_optimizer": {
+                        "device": "cpu"
+                     },
+                    "offload_param": {
+                        "device": "cpu"
+                   }
+        },
+                "activation_checkpointing": {
+                  "partition_activations": false,
+                  "contiguous_memory_optimization": false,
+                  "cpu_checkpointing": false
+                },
+                "wall_clock_breakdown": false
+        }"""
 
     if ARGS['method'] == 'QLoRA':
         default_deepspeed_config = default_deepspeed_config.replace('"cpu_offload": true','"cpu_offload": false')

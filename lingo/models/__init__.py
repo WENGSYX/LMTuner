@@ -85,7 +85,7 @@ def get_model_and_tokenizer(args):
 
     elif args.models == 'GLM-130B':
         from lingo.models.GLM130B_model import GLM130B as MODEL
-        tokenizer = AutoTokenizer.from_pretrained('THUDM/chatglm-6b', trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained('/data/LLM/Lingo/chatglm-6b', trust_remote_code=True)
 
         def preprocess_function_train(examples):
             prefix = args.source_prefix if args.source_prefix is not None else ""

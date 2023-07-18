@@ -253,7 +253,7 @@ def load_checkpoint(model, args, load_path=None, prefix=''):
                     f'Missing keys for inference: {missing_keys}.\nIf you still want to inference anyway, pass --force_inference to args.')
         else:  # new params
             #assert all(name.find('mixins') >= 0 or name.find('cross_attention') >= 0 for name in missing_keys), missing_keys
-            assert args.mode == 'finetune'
+            #assert args.mode == 'finetune'
             # list all mixin names
             mixin_names = []
             for key_name in missing_keys:

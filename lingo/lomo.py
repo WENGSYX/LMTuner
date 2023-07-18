@@ -543,6 +543,7 @@ class LOMO(Optimizer):
 
                                 p.ds_tensor[:] = partitioned_p
                             else:
+
                                 one_dim_grad_fp32 = grad_fp32.view(-1)
                                 partition_size = p.ds_tensor.numel()
                                 start = partition_size * self.local_rank
@@ -557,7 +558,8 @@ class LOMO(Optimizer):
                                     partitioned_grad_fp32.mul_(self.clip_coef)
 
                                 partitioned_p = param_fp32.narrow(0, 0, end - start)
-                                partitioned_p.add_(partitioned_grad_fp32, alpha=-self.lr)
+
+                                partitioned_p.add_(partitioned_grad_fp32.to(partitioned_p.device), alpha=-self.lr)
                                 p.ds_tensor[: end - start] = partitioned_p
             return x
 

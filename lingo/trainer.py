@@ -27,7 +27,7 @@ import torch.distributed as dist
 import deepspeed
 
 from sat.training.learning_rates import AnnealingLR
-from sat.training.model_io import load_checkpoint, save_checkpoint
+from lingo.models.model_io import load_checkpoint, save_checkpoint
 
 from sat.training.utils import Timers
 from sat.training.utils import report_memory
@@ -298,7 +298,7 @@ def get_optimizer_param_groups(model):
 
 
 def get_learning_rate_scheduler(optimizer, iteration, args,
-                                auto_warmup_steps=100, auto_warmup_rate=0.05):
+                                auto_warmup_steps=10, auto_warmup_rate=0.05):
     """Build the learning rate scheduler."""
 
     # Add linear learning rate scheduler.

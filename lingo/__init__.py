@@ -306,7 +306,7 @@ def get_cmd(ARGS):
         else:
             cmd += f'--load {ARGS["GLM_output_folder"]} '
 
-        cmd += f'--num-layers 70 --hidden-size 12288 --inner-hidden-size 32768 --vocab-size 150528 --layernorm-order post --num-attention-heads 96 --models GLM-130B '
+        cmd += f'--num-layers 70 --hidden-size 12288 --inner-hidden-size 32768 --vocab-size 150528 --layernorm-order post --num-attention-heads 96 --models GLM-130B --mode finetune '
 
 
         log_interval = 1
@@ -336,10 +336,17 @@ def get_cmd(ARGS):
                     cmd += '--wandb 1'
                     ARGS['wandb'] = wandb_api
                 else:
+                    ARGS['wandb'] = False
                     print_stream(
                         '\033[0;36m[WARM] The wandb raise ERROR, but we can continue without wandb. \033[0m')
             else:
                 wandb_python_code = f'wandb login {wandb_api}'
+        else:
+            ARGS['wandb'] = False
+
+    elif 'wandb' in ARGS:
+        if ARGS['wandb']:
+            cmd += '--wandb 1'
 
     if ARGS['data'] in LINGO_SUPPORT_DATASET:
         dataset = "WENGSYX/" + ARGS["data"]
