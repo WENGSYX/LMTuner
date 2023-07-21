@@ -132,7 +132,7 @@ def let_lingo():
                 'language': 'English',
                 }
     print(ARGS['GPU Number'])
-    print_stream('\033[0;33m[INFO] This is a library for training language models with ease. \033[0m', 0.005)
+    print_stream('\033[0;33m[INFO] This library facilitates the training of language models, making the process effortless!\033[0m', 0.005)
     print_stream(
         '\033[0;33m[INFO] In conversations with Lingo, the language model will be trained automatically according to your needs, without requiring any effort on your part 😊\033[0m',
         0.005)
@@ -299,12 +299,12 @@ def get_cmd(ARGS):
                 f'\033[0;36m[AI] python tools/convert_tp.py --input-folder {input_folder} --output-folder {output_folder} --target-tp {target_tp} {qlora} \033[0m')
             glm_130b_python_code = f'python tools/convert_tp.py --input-folder {input_folder} --output-folder {output_folder} --target-tp {target_tp} {qlora}'
             cmd += f'--load {output_folder} '
-            ARGS['GLM_output_folder'] = output_folder
+            ARGS['load'] = output_folder
             print_stream('\033[0;36m[AI] If you have completed these operations, please let me know at any time. \033[0m')
             input('[Answer] : ')
             print('')
         else:
-            cmd += f'--load {ARGS["GLM_output_folder"]} '
+            cmd += f'--load {ARGS["load"]} '
 
         cmd += f'--num-layers 70 --hidden-size 12288 --inner-hidden-size 32768 --vocab-size 150528 --layernorm-order post --num-attention-heads 96 --models GLM-130B --mode finetune '
 
@@ -314,6 +314,12 @@ def get_cmd(ARGS):
         cmd += '--model {} '.format(ARGS['model'])
         log_interval = 10
 
+        if 'load' in ARGS:
+            if ARGS['load'] != '':
+                cmd += '--load {} '.format(ARGS['load'])
+        else:
+            ARGS['load'] = ''
+
     if ARGS['method'] == 'LoRA':
         cmd += '--use_lora 1 --lora_rank {} '.format(ARGS['lora_rank'])
     if ARGS['method'] == 'QLoRA':  # TODO 使用QLoRA时，CPU-offload必须设置为false
@@ -321,12 +327,13 @@ def get_cmd(ARGS):
     if ARGS['method'] == 'LOMO':  # TODO LOMO必须要ZeRO-Stage3和bf16
         cmd += '--use_lomo 1 '
 
-    print_stream(
-        '\033[0;36m[AI] By the way, do you want to use Wandb to record logs? \033[0m')
-    print_stream(
-        '\033[0;36m[AI] If so, please provide Wandb"s API KEY, which may be located in https://wandb.ai/settings. Of course, if you enter No, we can skip this step \033[0m')
+
 
     if ARGS['train continue'] == False:
+        print_stream(
+            '\033[0;36m[AI] By the way, do you want to use Wandb to record logs? \033[0m')
+        print_stream(
+            '\033[0;36m[AI] If so, please provide Wandb"s API KEY, which may be located in https://wandb.ai/settings. Of course, if you enter No, we can skip this step \033[0m')
         wandb_api = input(
             '[Answer] : ')
         if len(wandb_api) >= 10:

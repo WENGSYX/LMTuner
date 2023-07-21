@@ -115,7 +115,7 @@ def get_model_and_tokenizer(args):
 
             return model_inputs
 
-    elif args.models in ['llama-7b', 'llama-13b', 'llama-33b', 'llama-65b']:
+    elif args.models.lower() in ['llama-7b', 'llama-13b', 'llama-33b', 'llama-65b']:
         from lingo.models.LLAMA_model import LLaMAModel as MODEL
         tokenizer = LlamaTokenizer.from_pretrained('decapoda-research/llama-7b-hf', trust_remote_code=True)
         tokenizer.pad_token_id = 1
@@ -148,6 +148,80 @@ def get_model_and_tokenizer(args):
                     model_inputs["labels"].append(labels[:args.max_seq_length])
 
             return model_inputs
+
+
+    elif args.models.lower() in ['llama2-7b', 'llama2-13b', 'llama2-70b']:
+        from lingo.models.LLAMAv2_model import LLaMAModel as MODEL
+        tokenizer = LlamaTokenizer.from_pretrained('meta-llama/Llama-2-7b-hf', trust_remote_code=True)
+        tokenizer.pad_token_id = 0
+        args.use_bias = False
+        args.hidden_dropout = 0.
+        args.attention_dropout = 0.
+        args.hidden_size_per_attention_head = None
+        args.layernorm_order = 'pre'
+        args.skip_init = True
+        args.use_gpu_initialization = None
+        args.tokenizer_type = "llama-7b-hf"
+        if args.models == 'llama2-7b':
+            args.hidden_size = 4096
+            args.num_attention_heads = 32
+            args.n_kv_heads = None
+            args.vocab_size = 32000
+            args.num_layers = 32
+            args.inner_hidden_size = 11008
+            args.ffn_dim_multiplier = None
+            args.max_sequence_length = 2048
+            args.model_parallel_size = 1
+        elif args.models == 'llama2-13b':
+            args.hidden_size = 5120
+            args.num_attention_heads =40
+            args.n_kv_heads = None
+            args.vocab_size = 32000
+            args.num_layers = 40
+            args.inner_hidden_size = 13824
+            args.ffn_dim_multiplier = None
+            args.max_sequence_length = 2048
+            args.model_parallel_size = 2
+        elif args.models == 'llama2-70b':
+            args.hidden_size = 8192
+            args.num_attention_heads = 64
+            args.n_kv_heads = 8
+            args.vocab_size = 32000
+            args.num_layers = 80
+            args.inner_hidden_size = 28672
+            args.ffn_dim_multiplier = None
+            args.max_sequence_length = 2048
+            args.model_parallel_size = 8
+
+        def preprocess_function_train(examples):
+
+            prefix = args.source_prefix if args.source_prefix is not None else ""
+
+            model_inputs = {
+                "input_ids": [],
+                "labels": [],
+            }
+            for i in range(len(examples[args.prompt_column])):
+                if examples[args.prompt_column][i] and examples[args.response_column][i]:
+                    prompt, answer = examples[args.prompt_column][i], examples[args.response_column][i]
+                    prompt = prefix + prompt
+                    a_ids = tokenizer.encode(text=prompt, add_special_tokens=True)
+                    b_ids = tokenizer.encode(text=answer, add_special_tokens=False)
+
+                    seq_length = len(a_ids) + len(b_ids) + 1
+
+                    input_id = a_ids + b_ids + [tokenizer.eos_token_id]
+                    label = [-100] * len(a_ids) + b_ids + [tokenizer.eos_token_id]
+
+                    input_ids = input_id + (args.max_seq_length - seq_length) * [tokenizer.pad_token_id]
+                    labels = label + (args.max_seq_length - seq_length) * [-100]
+
+
+                    model_inputs["input_ids"].append(input_ids[:args.max_seq_length])
+                    model_inputs["labels"].append(labels[:args.max_seq_length])
+
+            return model_inputs
+
 
     elif args.models in ['gpt2']:
         from lingo.models.GPT2_model import GPT2Model as MODEL
@@ -269,11 +343,22 @@ def get_model_and_tokenizer(args):
                 for n, p in self.named_parameters():
                     p.requires_grad_(True)
 
-    if args.models != 'GLM-130B':
+    if args.models.lower() in ['llama2-7b', 'llama2-13b', 'llama2-70b']:
+        model = FineTuneModel(args=args)
+        if args.quantization_bit:
+            # Quantize model before moving to GPU
+            model = quantize(model, args.quantization_bit, lora=args.use_lora)
+        if args.load:
+            load_checkpoint(model, args)
+        model = model.to(args.device)
+    elif args.models != 'GLM-130B':
         model, args = FineTuneModel.from_pretrained(args.models, args)
         if args.quantization_bit:
             # Quantize model before moving to GPU
             model = quantize(model, args.quantization_bit, lora=args.use_lora)
+        if args.load:
+            load_checkpoint(model, args)
+
     else:
         for i in range(get_model_parallel_world_size()):
             if get_model_parallel_rank() == i:
@@ -293,5 +378,6 @@ def get_model_and_tokenizer(args):
                     model = quantize(model, args.quantization_bit, lora=args.use_lora)
 
                 model = model.to(args.device)
+                model.transformer.parallel_output = False
     args.mode = 'finetune'
     return model, tokenizer, args

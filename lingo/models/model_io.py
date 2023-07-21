@@ -114,14 +114,17 @@ def save_checkpoint(iteration, model, optimizer,
                     lr_scheduler, args):
     """Save a model checkpoint."""
     if hasattr(args, 'deepspeed') and args.deepspeed:
-        if mpu.get_data_parallel_rank() == 0:
+        if mpu.get_data_parallel_rank() == 0 or args.model_parallel_size > 1:
             print_rank0('Saving Model...')
             save_ds_checkpoint(iteration, model, lr_scheduler, args)
-        if optimizer.optimizer.__class__.__name__ == "FusedEmaAdam":
-            update_ema_parameters_to_model(optimizer)
-            if mpu.get_data_parallel_rank() == 0:
-                print_rank0('Saving Ema Model...')
-                save_ds_checkpoint(iteration, model, lr_scheduler, args, True)
+        try:
+            if optimizer.optimizer.__class__.__name__ == "FusedEmaAdam":
+                update_ema_parameters_to_model(optimizer)
+                if mpu.get_data_parallel_rank() == 0:
+                    print_rank0('Saving Ema Model...')
+                    save_ds_checkpoint(iteration, model, lr_scheduler, args, True)
+        except:
+            pass
     elif args.mode == 'inference':
         os.makedirs(os.path.join(args.save, str(iteration)), exist_ok=True)
         torch.save({'module': model.state_dict()},

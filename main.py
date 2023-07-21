@@ -98,6 +98,10 @@ def forward_step(data_iterator, model, args, timers,lr=None):
 
 
     logits, *_  = model(input_ids=tokens.to(torch.int64))
+    if torch.distributed.get_rank() == 0:
+        print('tokens',tokens)
+        print('labels',labels)
+        print('logits',logits.argmax(2))
     dtype = logits.dtype
     lm_logits = logits.to(torch.float32)
 

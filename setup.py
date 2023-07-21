@@ -29,6 +29,7 @@ setuptools.setup(
         "numpy",
         "datasets",
         "torch",
-        "nvidia-ml-py"
+        "nvidia-ml-py",
+        "fairscale"
     ],
 )
