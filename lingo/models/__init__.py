@@ -8,10 +8,6 @@ from lingo.quantization import quantize
 from transformers import AutoTokenizer, LlamaTokenizer
 
 
-
-
-
-
 def get_model_and_tokenizer(args):
     if args.models == 'ChatGLM-6B':
         args.models = 'chatglm-6b'
@@ -119,6 +115,8 @@ def get_model_and_tokenizer(args):
         from lingo.models.LLAMA_model import LLaMAModel as MODEL
         tokenizer = LlamaTokenizer.from_pretrained('decapoda-research/llama-7b-hf', trust_remote_code=True)
         tokenizer.pad_token_id = 1
+        tokenizer.bos_token_id = 1
+        tokenizer.eos_token_id = 2
 
         def preprocess_function_train(examples):
 

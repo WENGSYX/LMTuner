@@ -8,25 +8,76 @@ from sat.mpu.utils import split_tensor_along_last_dim
 from sat.model.position_embedding.rotary_embeddings import RotaryEmbedding, rotate_half
 import torch.nn.functional as F
 from sat.mpu import ColumnParallelLinear
+from lingo.scaled_rope.modelling_llama import (
+    LlamaDynamicNTKScalingRotaryEmbedding,
+    LlamaLinearScalingRotaryEmbedding,
+    LlamaNTKByPartsRotaryEmbedding,
+    LlamaRotaryEmbedding,
+    LlamaXposRotaryEmbedding,
+    apply_rotary_pos_emb,
+    rotate_half,
+)
 
+try:
+    from flash_attn.flash_attn_interface import flash_attn_varlen_func
+    from flash_attn.modules.mha import FlashSelfAttention
+    from einops import rearrange
 
-def apply_rotary_pos_emb_index_bhs(q, k, cos, sin, position_id):
-    # batch_size, num_head, seq_len, hidden_size
-    cos, sin = F.embedding(position_id, cos.squeeze(1)).unsqueeze(1), \
-               F.embedding(position_id, sin.squeeze(1)).unsqueeze(1)
-    q, k = (q * cos) + (rotate_half(q) * sin), (k * cos) + (rotate_half(k) * sin)
-    return q, k
-
+    have_flash_attention = True
+except:
+    have_flash_attention = False
+    
 
 class RotaryMixin(BaseMixin):
-    def __init__(self, hidden_size, num_heads):
+    def __init__(self, args, hidden_size, num_heads):
         super().__init__()
-        self.rotary_emb = RotaryEmbedding(
-            hidden_size // num_heads,
-            base=10000,
-            precision=torch.half,
-            learnable=False,
-        )
+        self.config = args
+        self.head_dim = hidden_size // num_heads
+        self.max_position_embeddings = args.max_position_embeddings
+
+        self._init_rope()
+        self.use_flash_attention = args.use_flash_attention
+        if self.use_flash_attention:
+            if not have_flash_attention:
+                raise RuntimeError("Flash Attention 2 not installed")
+            self.flash_attention = FlashSelfAttention(causal=True)
+
+    def _init_rope(self):
+        if self.config.rope_scaling is None:
+            self.rotary_emb = LlamaRotaryEmbedding(
+                self.head_dim, max_position_embeddings=self.max_position_embeddings
+            )
+        else:
+            scaling_type = self.config.rope_scaling["type"]
+            scaling_factor = self.config.rope_scaling["factor"]
+            if scaling_type == "linear":
+                self.rotary_emb = LlamaLinearScalingRotaryEmbedding(
+                    self.head_dim,
+                    max_position_embeddings=self.max_position_embeddings,
+                    scaling_factor=scaling_factor,
+                )
+            elif scaling_type == "xpos":
+                self.rotary_emb = LlamaXposRotaryEmbedding(
+                    self.head_dim, max_position_embeddings=self.max_position_embeddings
+                )
+            elif scaling_type == "dynamic":
+                self.rotary_emb = LlamaDynamicNTKScalingRotaryEmbedding(
+                    self.head_dim,
+                    max_position_embeddings=self.max_position_embeddings,
+                    scaling_factor=scaling_factor,
+                )
+            elif scaling_type == "ntk-by-parts":
+                original_max_position_embeddings = self.config.rope_scaling[
+                    "original_max_position_embeddings"
+                ]
+                self.rotary_emb = LlamaNTKByPartsRotaryEmbedding(
+                    self.head_dim,
+                    max_position_embeddings=self.max_position_embeddings,
+                    scaling_factor=scaling_factor,
+                    original_max_position_embeddings=original_max_position_embeddings,
+                )
+            else:
+                raise ValueError(f"Unknown RoPE scaling type {scaling_type}")
 
     def attention_forward(self, hidden_states, mask, **kw_args):
         origin = self
@@ -36,23 +87,37 @@ class RotaryMixin(BaseMixin):
             attention_fn = self.hooks['attention_fn']
 
         mixed_raw_layer = self.query_key_value(hidden_states)
-        (mixed_query_layer,
-         mixed_key_layer,
-         mixed_value_layer) = split_tensor_along_last_dim(mixed_raw_layer, 3)
+        (
+            mixed_query_layer,
+            mixed_key_layer,
+            mixed_value_layer,
+        ) = split_tensor_along_last_dim(mixed_raw_layer, 3)
 
         dropout_fn = self.attention_dropout if self.training else None
 
         query_layer = self._transpose_for_scores(mixed_query_layer)
         key_layer = self._transpose_for_scores(mixed_key_layer)
         value_layer = self._transpose_for_scores(mixed_value_layer)
-        cos, sin = origin.rotary_emb(value_layer, seq_len=kw_args['position_ids'].max() + 1)
-        query_layer, key_layer = apply_rotary_pos_emb_index_bhs(query_layer, key_layer, cos, sin,
-                                                                kw_args['position_ids'])
+        cos, sin = origin.rotary_emb(
+            value_layer, seq_len=kw_args['position_ids'].max() + 1
+        )
+        if origin.config.rope_scaling["type"] == "xpos":
+            query_layer, key_layer = origin.rotary_emb.apply_rotary_pos_emb(
+                query_layer, key_layer, cos, sin, kw_args['position_ids']
+            )
+        else:
+            query_layer, key_layer = apply_rotary_pos_emb(
+                query_layer, key_layer, cos, sin, kw_args['position_ids']
+            )
 
-        context_layer = attention_fn(query_layer, key_layer, value_layer, mask, dropout_fn, **kw_args)
+        context_layer = attention_fn(
+            query_layer, key_layer, value_layer, mask, dropout_fn, **kw_args
+        )
 
         context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
-        new_context_layer_shape = context_layer.size()[:-2] + (self.hidden_size_per_partition,)
+        new_context_layer_shape = context_layer.size()[:-2] + (
+            self.hidden_size_per_partition,
+        )
         context_layer = context_layer.view(*new_context_layer_shape)
         output = self.dense(context_layer)
 
@@ -115,7 +180,7 @@ class LLaMAModel(BaseModel):
         super().__init__(args, transformer=transformer, parallel_output=parallel_output, layernorm=layernorm,
                          activation_func=activation_func, **kwargs)
         del self.transformer.position_embeddings
-        self.add_mixin("rotary", RotaryMixin(args.hidden_size, args.num_attention_heads))
+        self.add_mixin("rotary", RotaryMixin(args, args.hidden_size, args.num_attention_heads))
         self.add_mixin("lm", LMMixin(args.vocab_size, args.hidden_size))
         self.add_mixin("mlp", LLaMAMlpMixin(args.num_layers, args.hidden_size, args.inner_hidden_size))
         self.add_mixin("causal", GPT2AttnMixin(args.max_sequence_length))

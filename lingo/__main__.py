@@ -10,7 +10,7 @@ def continue_train(ARGS_file):
 
     if ARGS['Train_This_Machine'] == True:
         ARGS['train continue'] = True
-        json.dump(open('./ARGS.json', 'w', encoding='utf-8'), ARGS)
+        json.dump(ARGS, open('./ARGS1.json', 'w', encoding='utf-8'))
         print(
             '\033[0;36m[AI] We will train the model~. Let"s Go!\033[0m')
         if launch_cmd(cmd) == 0:
