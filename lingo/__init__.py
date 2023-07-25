@@ -247,7 +247,7 @@ def get_cmd(ARGS):
     if ARGS['model'] == 'GLM-130B' and ARGS['GPU Number'] >= 4:
         cmd += '--include localhost:{} '.format(','.join([str(i) for i in list(range(ARGS['GPU Number'] // 4 * 4))]))
     else:
-        cmd += '--include localhost:{} '.format(','.join([str(i) for i in list(range(ARGS['GPU Number']))]))
+        cmd += '--include localhost:{} '.format(','.join([str(i+8) for i in list(range(ARGS['GPU Number']))]))
 
     if ARGS['method']=='QLoRA' and ARGS['Quantization'] not in [4,8]:
         ARGS['Quantization'] = 4
@@ -326,7 +326,8 @@ def get_cmd(ARGS):
         cmd += '--use_lora 1 --quantization-bit {} --lora_rank {} '.format(ARGS['Quantization'], ARGS['lora_rank'])
     if ARGS['method'] == 'LOMO':  # TODO LOMO必须要ZeRO-Stage3和bf16
         cmd += '--use_lomo 1 '
-
+    if ARGS['rope_scaling'] == True:
+        cmd += '--rope_scaling True '
 
 
     if ARGS['train continue'] == False:

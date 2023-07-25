@@ -170,7 +170,7 @@ if __name__ == '__main__':
         py_parser.add_argument('--wandb', type=bool, default=False)
         py_parser.add_argument('--quantization_bit', type=int, default=0)
 
-        py_parser.add_argument('--rope_length_generalization', type=bool, default=False)
+        py_parser.add_argument('--rope_scaling', type=bool, default=False)
 
     args = initialize(extra_args_provider=add_generation_specific_args)
 
