@@ -247,7 +247,7 @@ def get_cmd(ARGS):
     if ARGS['model'] == 'GLM-130B' and ARGS['GPU Number'] >= 4:
         cmd += '--include localhost:{} '.format(','.join([str(i) for i in list(range(ARGS['GPU Number'] // 4 * 4))]))
     else:
-        cmd += '--include localhost:{} '.format(','.join([str(i+8) for i in list(range(ARGS['GPU Number']))]))
+        cmd += '--include localhost:{} '.format(','.join([str(i) for i in list(range(ARGS['GPU Number']))]))
 
     if ARGS['method']=='QLoRA' and ARGS['Quantization'] not in [4,8]:
         ARGS['Quantization'] = 4
