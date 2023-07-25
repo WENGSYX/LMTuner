@@ -159,7 +159,7 @@ def let_lingo():
 
 
 def let_lingo_choice():
-    """
+
     print_stream(
         '\033[0;33m[INFO] I see that you"re not too keen on chatting with me, but that"s alright. Let me ask you some questions next as part of the basic setup.\033[0m')
     print('')
@@ -170,7 +170,7 @@ def let_lingo_choice():
     print_stream('\033[0;36m4.Llama-13B\033[0m')
     print_stream('\033[0;36m5.Llama-33B\033[0m')
     print_stream('\033[0;36m6.Llama-33B\033[0m')
-    """
+
     print_stream('\033[0;36mUnsupport!\033[0m')
     exit(0)
 
