@@ -30,6 +30,6 @@ setuptools.setup(
         "datasets",
         "torch",
         "nvidia-ml-py",
-        "fairscale"
+        'sentencepiece'
     ],
 )

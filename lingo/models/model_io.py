@@ -7,6 +7,7 @@
 '''
 
 # here put the import lib
+from collections import OrderedDict
 import os
 import sys
 import math
@@ -112,19 +113,92 @@ def update_ema_parameters_to_model(optimizer):
 
 def save_checkpoint(iteration, model, optimizer,
                     lr_scheduler, args):
+    """Save a LORA checkpoint."""
+    if args.use_lora and args.save_lora_path:
+        if hasattr(model, 'module'):
+            model = model.module
+        if mpu.get_data_parallel_rank() == 0:
+            matrices = OrderedDict()
+            for name, param in model.named_parameters():
+                if name.find('matrix_A') >= 0 or name.find('matrix_B') >= 0:
+                    matrices[name] = param.data
+            # rng states.
+            if not args.no_save_rng:
+                matrices['random_rng_state'] = random.getstate()
+                matrices['np_rng_state'] = np.random.get_state()
+                matrices['torch_rng_state'] = torch.get_rng_state()
+                matrices['cuda_rng_state'] = torch.cuda.get_rng_state()
+
+            os.makedirs(os.path.join(args.save, iteration), exist_ok=True)
+            torch.save(matrices, os.path.join(args.save, iteration, 'lora_ckpt.pt'))
+            print_rank0(f'Saved lora to {os.path.join(args.save, iteration, "lora_ckpt.pt")}')
+
+            with open(os.path.join(args.save, 'latest'), 'w') as fd:
+                fd.write(str(iteration))
+
+            # save model_config.json for from_pretrained().
+            with open(os.path.join(args.save, 'model_config.json'), 'w') as f:
+                to_dump = extract_model_specific_args_to_dump(args, model)
+                json.dump(to_dump, f, indent=4)
+        torch.distributed.barrier()
+        return
+
+    if args.use_lomo:
+        state_dict = OrderedDict()
+        for n, p in model.named_parameters():
+            state_dict[n] = (p.ds_tensor.detach().cpu(), p.ds_numel, p.ds_shape)
+        # save model shards
+        if torch.distributed.get_rank() not in [-1, 0]:
+            with open(os.path.join(args.save, f'pytorch_model-{torch.distributed.get_rank()}.bin'), 'wb') as f:
+                torch.save(state_dict, f)
+        torch.distributed.barrier()
+        # merge model shards
+        if torch.distributed.get_rank() in [-1, 0]:
+
+            for rank in range(1, torch.distributed.world_size):
+                with open(os.path.join(args.save, f'pytorch_model-{rank}.bin'), 'rb') as f:
+                    state_dict_rank = torch.load(f)
+                    for n in state_dict_rank:
+                        state_dict[n] = (
+                            torch.cat([state_dict[n][0], state_dict_rank[n][0]], dim=0),
+                            state_dict[n][1],
+                            state_dict[n][2]
+                        )
+                # remove shard files
+                os.remove(os.path.join(args.save, f'pytorch_model-{rank}.bin'))
+            # reshape to original shape
+            for n in state_dict:
+                numel = state_dict[n][1]
+                shape = state_dict[n][2]
+                state_dict[n] = state_dict[n][0][:numel].view(shape)
+
+            os.makedirs(os.path.join(args.save, iteration), exist_ok=True)
+            ckpt_name = get_checkpoint_name(args.save, iteration)
+            with open(ckpt_name, 'wb') as f:
+                torch.save(state_dict, f)
+                print(f"Save model to {args.save}.")
+
+            with open(os.path.join(args.save, 'latest'), 'w') as fd:
+                fd.write(str(iteration))
+
+            # save model_config.json for from_pretrained().
+            with open(os.path.join(args.save, 'model_config.json'), 'w') as f:
+                to_dump = extract_model_specific_args_to_dump(args, model)
+                json.dump(to_dump, f, indent=4)
+
+        torch.distributed.barrier()
+        return
+
     """Save a model checkpoint."""
     if hasattr(args, 'deepspeed') and args.deepspeed:
-        if mpu.get_data_parallel_rank() == 0 or args.model_parallel_size > 1:
+        if mpu.get_data_parallel_rank() == 0:
             print_rank0('Saving Model...')
             save_ds_checkpoint(iteration, model, lr_scheduler, args)
-        try:
-            if optimizer.optimizer.__class__.__name__ == "FusedEmaAdam":
-                update_ema_parameters_to_model(optimizer)
-                if mpu.get_data_parallel_rank() == 0:
-                    print_rank0('Saving Ema Model...')
-                    save_ds_checkpoint(iteration, model, lr_scheduler, args, True)
-        except:
-            pass
+        if optimizer.optimizer.__class__.__name__ == "FusedEmaAdam":
+            update_ema_parameters_to_model(optimizer)
+            if mpu.get_data_parallel_rank() == 0:
+                print_rank0('Saving Ema Model...')
+                save_ds_checkpoint(iteration, model, lr_scheduler, args, True)
     elif args.mode == 'inference':
         os.makedirs(os.path.join(args.save, str(iteration)), exist_ok=True)
         torch.save({'module': model.state_dict()},
@@ -235,6 +309,17 @@ def load_checkpoint(model, args, load_path=None, prefix=''):
     for k in sd['module']:
         if k.startswith(prefix):
             new_sd['module'][k[len(prefix):]] = sd['module'][k]
+
+    if args.use_lora and args.load_lora_path:
+        print_rank0('loading_lora')
+        tracker_file = get_checkpoint_tracker_filename(args.load_lora_path)
+        with open(tracker_file, 'r') as f:
+            lora_iter = int(f.read().strip())
+        lora_file = os.path.join(args.save, lora_iter, "lora_ckpt.pt")
+
+        lora_sd = torch.load(lora_file, map_location='cpu')
+        new_sd['module'].update(lora_sd)
+
     sd = new_sd
 
     if hasattr(model, 'module'):
@@ -254,9 +339,11 @@ def load_checkpoint(model, args, load_path=None, prefix=''):
             else:
                 raise ValueError(
                     f'Missing keys for inference: {missing_keys}.\nIf you still want to inference anyway, pass --force_inference to args.')
+        elif args.use_lora:
+            pass
         else:  # new params
-            #assert all(name.find('mixins') >= 0 or name.find('cross_attention') >= 0 for name in missing_keys), missing_keys
-            #assert args.mode == 'finetune'
+            # assert all(name.find('mixins') >= 0 or name.find('cross_attention') >= 0 for name in missing_keys), missing_keys
+            assert args.mode == 'finetune'
             # list all mixin names
             mixin_names = []
             for key_name in missing_keys:

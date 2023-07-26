@@ -1,1 +1,1 @@
-LINGO_SUPPORT_DATASET = ['WENGSYX/lingo-dataset-v1','Lingo-Medical-v1','Lingo-law-v1','Lingo-Chinese-v1','Lingo-English-v1']
+LINGO_SUPPORT_DATASET = ['WENGSYX/lingo-dataset-v1','WENGSYX/Lingo-Medical-v1','WENGSYX/Lingo-law-v1','GAIR/lima']
