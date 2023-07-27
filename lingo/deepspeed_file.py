@@ -7,7 +7,7 @@ def get_deepspeed(ARGS):
         "steps_per_print": 1,
         "gradient_clipping": 0.5,
         "zero_allow_untested_optimizer": true,
-        "bf16": {
+        "fp16": {
           "enabled": true
         },
         "zero_force_ds_cpu_optimizer":false,

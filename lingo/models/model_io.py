@@ -114,7 +114,8 @@ def update_ema_parameters_to_model(optimizer):
 def save_checkpoint(iteration, model, optimizer,
                     lr_scheduler, args):
     """Save a LORA checkpoint."""
-    if args.use_lora and args.save_lora_path:
+    iteration = str(iteration)
+    if args.use_lora and args.lora_save:
         if hasattr(model, 'module'):
             model = model.module
         if mpu.get_data_parallel_rank() == 0:
@@ -310,9 +311,9 @@ def load_checkpoint(model, args, load_path=None, prefix=''):
         if k.startswith(prefix):
             new_sd['module'][k[len(prefix):]] = sd['module'][k]
 
-    if args.use_lora and args.load_lora_path:
+    if args.use_lora and args.lora_load:
         print_rank0('loading_lora')
-        tracker_file = get_checkpoint_tracker_filename(args.load_lora_path)
+        tracker_file = get_checkpoint_tracker_filename(args.lora_load)
         with open(tracker_file, 'r') as f:
             lora_iter = int(f.read().strip())
         lora_file = os.path.join(args.save, lora_iter, "lora_ckpt.pt")

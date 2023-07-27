@@ -5,7 +5,7 @@ from lingo.utils import *
 
 
 
-def let_lingo(ARGS_file = ''):
+def Let_Lingo(ARGS_file = ''):
     if ARGS_file and os.path.exists(ARGS_file):
         ARGS = json.load(open(ARGS_file))
         ARGS['train continue'] = True
@@ -31,7 +31,7 @@ def let_lingo(ARGS_file = ''):
                     'batch size': 6,
                     'max length': 1024,
                     'GPU Number': pynvml.nvmlDeviceGetCount(),
-                    'GPU Memory': str(round(pynvml.nvmlDeviceGetMemoryInfo(0).free / (1024 * 1024), 2)) + 'MB',
+                    'GPU Memory': str(round(pynvml.nvmlDeviceGetMemoryInfo(pynvml.nvmlDeviceGetHandleByIndex(0)).free / (1024 * 1024), 2)) + 'MB',
                     'quantization': None,
                     'train this machine': True,
                     'save interval': 1000,
@@ -43,7 +43,7 @@ def let_lingo(ARGS_file = ''):
             ARGS = {'data': None,
                     'model': None,
                     'method': None,
-                    'learn rate': 1e-5,
+                    'learning rate': 1e-5,
                     'epoch': 10,
                     'lora rank': 16,
                     'batch size': 6,
@@ -85,7 +85,7 @@ def let_lingo(ARGS_file = ''):
         print(ARGS)
         cmd,glm_130b_python_code,wandb_python_code,ARGS = get_cmd(ARGS)
 
-        if ARGS['train this machine'] == True:
+        if ARGS['train this machine'] == True or ARGS['train this machine'] == 'True':
             json.dump(ARGS,open('./ARGS.json','w',encoding='utf-8'))
             print_stream(
                 '\033[0;36m[AI] We will train the model~. Let"s Go!\033[0m')

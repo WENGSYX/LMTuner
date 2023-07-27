@@ -15,27 +15,26 @@ import math
 
 system = """You are an AI assistant capable of training large language models. You need to have a concise conversation with the user. If there are default options in ARGS, you do not need to reset them. But when you're ready to end the conversation, please call the Stop_Conversation function. Firstly, you need to ask the user questions in order to complete all the information about ARGS and recommend suitable models and method configurations for the user. For each key in ARGS that has a non-None value, you need to ask the user for confirmation. For keys that have default values, you can recommend the default value to the user, but you should also allow the user to modify the value according to their needs. 
 
-ARGS['data']: Default: None; You can either select one from the data list or fill in a local file address. Now you have some existing datasets, including: English Common: GAIR/lima; Chinese Medical: WENGSYX/Lingo-Medical-v1; Chinese Law: WENGSYX/Lingo-law-v1; Chinese Common: WENGSYX/Lingo-Chinese-v1. You have some ready-made datasets that can be added to ARGS ["dataset"], and also support adding user own data. You need to teach users to configure a JSONL file, where each line is a dictionary, and the dictionary keys are "input" and "output", respectively, and please append the absolute path of the dataset in ARGS['dataset'].
+ARGS['model']: Default: None; Here are some available foundation models to choose from: GLM-130B, ChatGLM-6B,ChatGLM2-6B, llama-7b, lama-13b, llama-33b, llama-65b, gpt2. Please note that the selection of the model should be based on the specific number and memory information of the GPUs, combined with the training method. The GLM-130B, ChatGLM-6B, and ChatGLM2-6B models are suitable for Chinese data. If the graphics memory is insufficient, we recommend using the 6B model. If the graphics memory is sufficient, we recommend the GLM-130B model. In addition, the llama-7b, llama-13b, llama-33b, llama-65b, and gpt2 models are suitable for English data. Among them, gpt2 is the smallest model, and only requires 6G GPU memory for full parameter fine-tuning.
 
-ARGS['model']: Default: None; Here are some available models to choose from: GLM-130B, ChatGLM-6B,ChatGLM2-6B, llama-7b, lama-13b, llama-33b, llama-65b, gpt2. Please note that the selection of the model should be based on the specific number and memory information of the GPUs, combined with the training method. The GLM-130B, ChatGLM-6B, and ChatGLM2-6B models are suitable for Chinese data. If the graphics memory is insufficient, we recommend using the 6B model. If the graphics memory is sufficient, we recommend the GLM-130B model. In addition, the llama-7b, llama-13b, llama-33b, llama-65b, and gpt2 models are suitable for English data. Among them, gpt2 is the smallest model, and only requires 6G GPU memory for full parameter fine-tuning.
+ARGS['data']: Default: None; You can either select one from the data list or fill in a local file address. Now you have some existing datasets, including: English Common: GAIR/lima; Chinese Medical: WENGSYX/Lingo-Medical-v1; Chinese Law: WENGSYX/Lingo-law-v1; Chinese Common: WENGSYX/Lingo-Chinese-v1. You have some ready-made datasets that can be added to ARGS ["dataset"], and also support adding user own data. You need to teach users to configure a JSONL file, where each line is a dictionary, and the dictionary keys are "input" and "output", respectively, and please append the absolute path of the dataset in ARGS['dataset'].
 
 ARGS['method']: Default: None;  If the user does not have a preference for a specific model, recommendations can be made based on the available GPU memory. (LoRA: Low-Rank Adaptation; QLoRA: Quantized LoRA; LOMO: LOw-Memory Optimization; None: Full parameter fine-tune with AdamW) Among them, LoRA and QLoRA only fine tune a portion of the parameters in the model to reduce the required graphics memory, while LOMO is a special SGD optimizer that can fine tune all parameters under low graphics memory requirements) A 6GB GPU memory supports training of the 6B model with QLoRA mode. A 12GB GPU memory supports training of the 6B model with QLoRA/LoRA/LOMO modes or the 13B model with QLoRA mode. A 24GB GPU memory supports training of the 33B model with QLoRA mode or the 13B model with QLoRA/LoRA/LOMO modes. A 48GB GPU memory supports training of the 65B model with QLoRA mode or the 33B model with QLoRA/LoRA/LOMO modes, or full parameter fine-tuning of the 7B model (using AdamW optimizer). An 80GB GPU memory supports training of the 65B model with QLoRA/LoRA/LOMO modes or full parameter fine-tuning of the 13B model (using AdamW optimizer). Four 48GB GPU memory cards support training of the 130B model with QLoRA mode, while eight 48GB GPU memory cards support training of the 130B model with QLoRA/LoRA/LOMO modes.
 
-ARGS['learning rate']: Default 1e-5; If using LoRA or QLoRA as the method, please set it to 1e-3. Otherwise, set it to 1e-5.
+ARGS['learning rate']: Default 1e-5; If using LoRA or QLoRA as the method, please set it to 2e-4. Otherwise, set it to 1e-5.
 
 ARGS['epoch']: Defalt 10,
 ARGS['lora rank']: Default 16,
 ARGS['batch size']: Default 6,
-ARGS['max length']: Default 1024,
+ARGS['max length']: The sequence max length.
 ARGS['gradient accumulation']: Default 1
 ARGS['GPU Number']: Default The number of GPUs on the local machine.
 ARGS['GPU Memory']: Default The memory size of the first GPU on the local machine.
 ARGS['quantization']: Default None; if ARGS['method']=='QLoRA', INT4 or INT8 quantization can be used, but it is recommended to use INT4 quantization. You need to set 4 or 8 for QLoRA.
 
-ARGS['train this machine']: Default False; If the server's GPU is sufficient for training, it can be set to True with the user's consent, and training will start automatically.
+ARGS['train this machine']: Default True; Training will start automatically.
 ARGS['save interval']: Default 1000; Save the weights every N steps.
 ARGS['save path']: Default './checkpoints'
-ARGS['language']: Default 'English'; If the user is speaking to you in Chinese, you should respond in Chinese and set the language to Chinese.
 ARGS['gradient accumulation']: Default 1; Gradient accumulation steps during training.
 ARGS['rope scaling']: Default False; Enabling rope scaling allows for positional interpolation of Llama-series models, enabling larger sequence lengths (up to 8000 tokens). However, it should be noted that this approach requires longer training times.
 Once all the values for ARGS have been confirmed, you should call the function to indicate the final values of ARGS, but don't let the user know about ARGS and the function you are calling.
@@ -233,7 +232,7 @@ def let_lingo_conversation(ARGS):
                 try:
                     dict_json = json.loads(result['choices'][0]['message']['function_call']['arguments'])
                     ARGS[dict_json['Key']] = dict_json['Value']
-                    if dict_json == 'data':
+                    if dict_json['Key'] == 'data':
                         sueecss, messages, number = check_data(ARGS, dict_json['Value'])
                         if sueecss:
                             print_stream(
@@ -244,6 +243,8 @@ def let_lingo_conversation(ARGS):
                             ARGS['max length'] = number
                         else:
                             print_stream(messages)
+                        print()
+                        ARGS['max length'] = number
 
                 except:
                     pass
@@ -284,7 +285,7 @@ def get_cmd(ARGS):
     if ARGS['method']=='QLoRA' and ARGS['quantization'] not in [4,8]:
         ARGS['quantization'] = 4
 
-    cmd += "lingo.launch --seed 1234 "
+    cmd += "main.py --seed 1234 "
     if ARGS['model'] == 'GLM-130B':
         print_stream(
             '\033[0;36m[AI] Due to the need to manually download the weight of GLM-130B, please follow my instructions (See in https://github.com/THUDM/GLM-130B#model-weights)\033[0m')
@@ -370,7 +371,7 @@ def get_cmd(ARGS):
         wandb_api = input(
             '[Answer] : ')
         if len(wandb_api) >= 10:
-            if ARGS['train this machine'] == True:
+            if ARGS['train this machine'] == True or ARGS['train this machine'] == 'True':
 
                 if launch_cmd(f'wandb login {wandb_api}') == 0:
                     cmd += '--wandb 1'
@@ -390,7 +391,7 @@ def get_cmd(ARGS):
 
 
 
-    cmd += f'--fp16 --dataset {ARGS["data"]} --train-data {ARGS["data"]} --valid-data {ARGS["data"]} --max_seq_length {ARGS["max length"]} --epochs {ARGS["epoch"]}  --train-iters 0  --no-load-rng --warmup .02 --checkpoint-activations --save-interval {ARGS["save interval"]} --save "{ARGS["save path"]}" --split 1 --eval-interval 1000000 --eval-batch-size 2 --lr {ARGS["learn rate"]} --num-workers 0 --log-interval {log_interval} '
+    cmd += f'--fp16 --dataset {ARGS["data"]} --train-data {ARGS["data"]} --valid-data {ARGS["data"]} --max_seq_length {ARGS["max length"]} --epochs {ARGS["epoch"]}  --train-iters 0  --no-load-rng --warmup .02 --checkpoint-activations --save-interval {ARGS["save interval"]} --save "{ARGS["save path"]}" --split 1 --eval-interval 1000000 --eval-batch-size 2 --lr {ARGS["learning rate"]} --num-workers 0 --log-interval {log_interval} '
 
     cmd += '--deepspeed_config ./ds_config.json'
 

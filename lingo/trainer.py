@@ -150,6 +150,7 @@ def training_main(args, model_cls, forward_step_function, create_dataset_functio
         #     args.iteration = load_checkpoint(model, optimizer, args)
     else:
         args.iteration = 0
+
     if args.save:
         args.save = os.path.join(args.save, args.experiment_name)
         if not os.path.exists(args.save):
