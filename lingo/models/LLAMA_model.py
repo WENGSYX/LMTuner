@@ -101,14 +101,15 @@ class RotaryMixin(BaseMixin):
         cos, sin = origin.rotary_emb(
             value_layer, seq_len=kw_args['position_ids'].max() + 1
         )
-        if origin.config.rope_scaling["type"] == "xpos":
-            query_layer, key_layer = origin.rotary_emb.apply_rotary_pos_emb(
-                query_layer, key_layer, cos, sin, kw_args['position_ids']
-            )
-        else:
-            query_layer, key_layer = apply_rotary_pos_emb(
-                query_layer, key_layer, cos, sin, kw_args['position_ids']
-            )
+        if origin.config.rope_scaling:
+            if origin.config.rope_scaling["type"] == "xpos":
+                query_layer, key_layer = origin.rotary_emb.apply_rotary_pos_emb(
+                    query_layer, key_layer, cos, sin, kw_args['position_ids']
+                )
+            else:
+                query_layer, key_layer = apply_rotary_pos_emb(
+                    query_layer, key_layer, cos, sin, kw_args['position_ids']
+                )
 
         context_layer = attention_fn(
             query_layer, key_layer, value_layer, mask, dropout_fn, **kw_args
