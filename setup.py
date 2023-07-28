@@ -17,19 +17,20 @@
 import setuptools
 
 setuptools.setup(
-    name="lingo",
-    version="1.1.0",
+    name="lingo-llm",
+    version="1.2.0",
     url="https://github.com/WENGSYX/Lingo",
     author="Yixuan Weng",
     author_email="wengsyx@gmail.com",
     description="Lingo: Make the LLM Better for Everyone",
     packages=setuptools.find_packages(),
     install_requires=[
-        "transformers",
+        "transformers>=4.30.2",
         "numpy",
         "datasets",
         "torch",
         "nvidia-ml-py",
-        'sentencepiece'
+        'sentencepiece',
+        "openai>=0.27.8"
     ],
 )
