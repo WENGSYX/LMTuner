@@ -7,9 +7,9 @@
   <img alt="GitHub 最后提交" src="https://img.shields.io/github/last-commit/WENGSYX/Lingo">
 </p>
 
-<center>
+<div align="center">
 <img src="./images/Lingo_github.png" alt="LOGO" width="80%">
-</center>
+</div>
 
 欢迎来到 Lingo 项目 - Lingo 是一个开源系统,通过简单的命令行界面让大语言模型(LLM)的训练变得简单高效,无需任何编码经验。Lingo 的关键目标是通过抽象掉不必要的复杂性,使 LLM 训练更具可访问性。🚀🚅
 
