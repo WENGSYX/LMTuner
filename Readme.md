@@ -6,9 +6,9 @@
     <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/WENGSYX/Lingo">
     <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/WENGSYX/Lingo">
 </p>
-<center>
+<div align="center">
 <img src="./images/Lingo_github.png" alt="LOGO" width="80%">
-</center>
+</div>
 
 Welcome to the Lingo Project - Lingo is an open-source system that enables easy and efficient training of large language models (LLMs) through a simple command-line interface, without requiring any coding experience. The key goal of Lingo is to make LLM training more accessible by abstracting away unnecessary complexity. 🚀🚅
 

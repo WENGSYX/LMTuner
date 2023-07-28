@@ -1,52 +1,40 @@
-## Lingo: Make the LLM Better for Everyone🚀🚀
+# 轻松无忧 LLMs 训练，**Lingo**来了🚀🚀
 
-*Read this in [English](Readme.md).*
+<p align="center">
+  <img alt="GitHub" src="https://img.shields.io/github/license/WENGSYX/Lingo.svg?color=blue&style=flat-square">
+  <img alt="GitHub 仓库大小" src="https://img.shields.io/github/repo-size/WENGSYX/Lingo">
+  <img alt="GitHub 主要语言" src="https://img.shields.io/github/languages/top/WENGSYX/Lingo">
+  <img alt="GitHub 最后提交" src="https://img.shields.io/github/last-commit/WENGSYX/Lingo">
+</p>
 
-<div>
+<center>
+<img src="./images/Lingo_github.png" alt="LOGO" width="80%">
+</center>
 
+欢迎来到 Lingo 项目 - Lingo 是一个开源系统,通过简单的命令行界面让大语言模型(LLM)的训练变得简单高效,无需任何编码经验。Lingo 的关键目标是通过抽象掉不必要的复杂性,使 LLM 训练更具可访问性。🚀🚅
 
-
-欢迎来到Lingo项目——让大型语言模型服务于人类的大舞台！🎉🎉
-
-Lingo的核心使命是通过低成本的方式使得大型语言模型在更多领域发挥它的神奇力量。我们相信，只要稍微进行引导和微调，这些大规模的语言模型就能展现出令人惊艳的性能。💫🌈
-
-在Lingo这个项目中，我们提供了超高质量的开源数据、高效微调代码以及微调后的模型权重。我们致力于为你提供最全面、最有效的工具和资源！🚀🚅
-
-
-
-</div>
-
-## 🔄 最近更新
-
-* [2023/07/12] 开放Lingo训练代码，让我们轻松训练模型吧~
-* [2023/06/20] 开放[Lingo-dataset-v1](https://huggingface.co/datasets/WENGSYX/Lingo-dataset-v1)，总计1091条高质量中文对话式问答训练集
+### 🔄 最新动态
+* [2023/07/27] 发布 **Lingo-v1.2.0**!Lingo 集成了模型并行、量化、参数高效微调(PEFT)、内存高效微调(MEFT)、ZeRO 优化、自定义数据集加载以及位置插值等功能。
+* [2023/06/30] 发布 [Lingo-dataset-v1](https://huggingface.co/datasets/WENGSYX/Lingo-dataset-v1) 在 LIMA 数据集的基础上,我们手动将其翻译成中文问答,并在多个地方进行了改编以适应中文环境。
+* [2023/06/01] 我们创建了 Lingo 项目,希望大家都可以在消费级服务器上训练 LLM。
 
 ### 如何安装
 
-我们要求预先安装Apex和Deepspeed，安装教程可参考
+本仓库在 Python 3.8+、PyTorch 1.10+ 和 Deepspeed 0.9.3+ 上测试通过。
+
 ```
 git clone https://github.com/WENGSYX/Lingo
 pip install .
 ```
 
-### 零门槛训练大模型
+### 快速体验
 
-Lingo是一个***零代码***+***零门槛***训练大模型的工具包。通过内置训练助手，你只需要用自然语言说明你的需求，Lingo就能全自动训练。
-我们预先提供了一些IFT数据集，同时也可以使用自定义的数据加载
+要快速使用 Lingo 训练模型,只需使用 `Let_Lingo()`。通过调用 OpenAI 的 GPT-4,您可以确定要训练的模型的各种参数。最后,Lingo 会将配置保存为 `ARGS.json`。
 
-```bash
-python -m lingo
-```
-或者使用python代码调用lingo：
 ```python
-from lingo import let_lingo
+from lingo import Let_Lingo
+Let_Lingo()
 
-let_lingo()
-```
-
-
-##### 然后就能够通过自然语言的形式，训练语言模型（在一台具有8卡A6000显卡的服务器中）
-```
 [INFO] This is a library for training language models with ease. 
 [INFO] In conversations with Lingo, the language model will be trained automatically according to your needs, without requiring any effort on your part 😊
 [INFO] Would you like to command Lingo through casual conversation? 
@@ -80,6 +68,18 @@ let_lingo()
 (自动填写ds_config并调用Deepspeed使用QLoRA+GLM-130B训练模型)
 ```
 
+如果 GPT-4 不可用,我们还配置了十个类似问答的问题。通过回答这些问题,您也可以成功配置系统。
+
+##### 继续训练
+
+如果训练中途停止,您可以通过以下代码快速重新启动训练过程,而无需重复训练。或者,您可以通过手动修改 `ARGS.json` 中的参数更快地尝试其他训练方法。
+
+```python
+from lingo import Let_Lingo
+
+Let_Lingo('./ARGS.json')
+```
+
 
 ### 创建你的特色数据集
 我们还允许创建特色数据集，包括添加新的样本和指定模型名称等。
@@ -103,18 +103,41 @@ dataset = lingo_dataset.get_list()
 - 我们支持额外添加新的样本，调用 `lingo_dataset.add_sample`并传入对话列表，即可自动加入新的对话样本。
 - 一键获得数据集，调用 `lingo_dataset.get_list()`将返回列表格式的数据集，您可以在此基础上继续训练新的模型
 
-### 🌱 Lingo's Roadmap 🌱
+### 支持的模型
 
-Version-1 目标 :
+|                      | LoRA | QLoRA | LOMO | 模型并行 | 位置插值 | 模型规模 |
+|----------------------|-----------------|------------|------------|----------------|---------------------|------------|
+GPT-2:|✅|✅|✅|                |                     |117M|
+GPT-Neo-1.3B|✅|✅|✅|                |                   | 1.3B              |
+ChatGLM-6B|✅|✅|✅|                |                     |6B|
+ChatGLM2-6B|✅|✅|✅|                |                     |6B|  
+Llama-7B|✅|✅|✅|                | ✅                   |7B|
+Llama-13B|✅|✅|✅| ✅              | ✅                   |13B|
+Llama-33B|✅|✅|✅| ✅              | ✅                   |33B|
+Llama-65B|✅|✅|✅| ✅              | ✅                   |65B|
+Llama2-7B|✅|✅|✅|                | ✅                   |7B|
+Llama2-13B|✅|✅|✅| ✅              | ✅                   |13B|   
+Llama2-70B|✅|✅|✅| ✅              | ✅                   |70B|
+GLM-130B|✅|✅|✅| ✅              |                     |130B|
 
-- [x] 开源高质量中文数据集
-- [x] 开源模型的微调代码
-- [ ] 开源模型权重
 
-Version-2 目标 :
+### GPU 内存 
 
-- [ ] 数据集中加入Function Calling示例
-- [ ] ...
+<center>
+<img src="./images/memory.png" alt="GPU 内存" width="100%">
+</center>
+
+### 与其他方案的比较
+
+|                      | 模型并行 | 量化 | PEFT | MEFT | ZeRO | 载入数据集 | 位置插值 | AI助手 | 代码简洁 |  
+|----------------------|-------------------|--------------|------|------|------|--------------|------------------------|---------------|--------------|
+| MegatronLM           | ✅                |              |      |      |      |              |                        |               |              |
+| Huggingface          | ✅                |              | ✅   |      | ✅   | ✅           |                        |               | ✅           |
+| bitsandbytes         |                   | ✅           |      |      |      |              |                        |               |              |  
+| Lamini               |                   |              |      |      |      | ✅           |                        |               | ✅           |
+| OpenDelta            |                   |              | ✅   |      |      |              |                        |               | ✅           |
+| h2oGPT               |                   | ✅           | ✅   |      |      | ✅           |                        |               | ✅           |
+| **Lingo (我们的)**  | ✅                | ✅           | ✅   | ✅   | ✅   | ✅           | ✅                      | ✅             | ✅           |
 
 ### 引用
 
@@ -130,8 +153,3 @@ Version-2 目标 :
       primaryClass={cs.CL}
 }
 ```
-
-### 免责声明
-
-**本项目相关资源仅供学术研究之用，严禁用于商业用途。**
-使用涉及第三方代码的部分时，请严格遵循相应的开源协议。模型生成的内容受模型计算、随机性和量化精度损失等因素影响，本项目不对其准确性作出保证。对于模型输出的任何内容，本项目不承担任何法律责任，亦不对因使用相关资源和输出结果而可能产生的任何损失承担责任。
