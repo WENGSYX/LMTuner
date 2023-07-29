@@ -17,7 +17,7 @@ Welcome to the Lingo Project - Lingo is an open-source system that enables easy 
 * [2023/06/30] Release [Lingo-dataset-v1](https://huggingface.co/datasets/WENGSYX/Lingo-dataset-v1) On the basis of the LIMA dataset, we manually translated it into Chinese QA and adapted it in multiple places to adapt to the Chinese environment. 
 * [2023/06/01] We have created the Lingo project, and we hope that everyone can train LLM on consumer-level servers.
 ### How to install
-This repository is tested on Python 3.8+, PyTorch 1.10+ and Deepspeed 0.9.3+.
+This repository is tested on Python 3.8+, PyTorch 1.10+ and Deepspeed 0.9.3+, detail in [Install](https://wengsyx.github.io/Lingo/install.html).
 ```
 git clone https://github.com/WENGSYX/Lingo
 pip install .
