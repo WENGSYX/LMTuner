@@ -11,7 +11,7 @@ def Let_Lingo(ARGS_file = ''):
         ARGS['train continue'] = True
         cmd, glm_130b_python_code, wandb_python_code, ARGS = get_cmd(ARGS)
 
-        json.dump(ARGS, open('./ARGS1.json', 'w', encoding='utf-8'))
+        json.dump(ARGS, open('./ARGS.json', 'w', encoding='utf-8'))
         print(
             '\033[0;36m[AI] We will train the model~. Let"s Go!\033[0m')
         if launch_cmd(cmd) == 0:
