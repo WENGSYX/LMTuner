@@ -6,7 +6,15 @@
   <img alt="GitHub 主要语言" src="https://img.shields.io/github/languages/top/WENGSYX/Lingo">
   <img alt="GitHub 最后提交" src="https://img.shields.io/github/last-commit/WENGSYX/Lingo">
 </p>
-
+<h4 align="center">
+    <p>
+        <a href="https://wengsyx.github.io/Lingo/">Homepage</a> |
+        <a href="https://github.com/WENGSYX/Lingo/blob/main/Readme.md">Code</a> |
+        <a href="https://arxiv.org/abs/2304.01665">Paper</a> |
+        <a href="https://wengsyx.github.io/Lingo/install.html">Install</a> |
+        <b>中文简体</b> |
+    <p>
+</h4>
 <div align="center">
 <img src="./images/Lingo_github.png" alt="LOGO" width="80%">
 </div>

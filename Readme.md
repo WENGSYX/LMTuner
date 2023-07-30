@@ -6,11 +6,22 @@
     <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/WENGSYX/Lingo">
     <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/WENGSYX/Lingo">
 </p>
+<h4 align="center">
+    <p>
+        <a href="https://wengsyx.github.io/Lingo/">Homepage</a> |
+        <b>Code</b> |
+        <a href="https://arxiv.org/abs/2304.01665">Paper</a> |
+        <a href="https://wengsyx.github.io/Lingo/install.html">Install</a> |
+        <a href="https://github.com/WENGSYX/Lingo/blob/main/Readme_Zh.md">中文简体</a> |
+    <p>
+</h4>
 <div align="center">
 <img src="./images/Lingo_github.png" alt="LOGO" width="80%">
 </div>
 
 Welcome to the Lingo Project - Lingo is an open-source system that enables easy and efficient training of large language models (LLMs) through a simple command-line interface, without requiring any coding experience. The key goal of Lingo is to make LLM training more accessible by abstracting away unnecessary complexity. 🚀🚅
+
+
 
 ### 🔄 Recent updates
 * [2023/07/27] Release **Lingo-v1.2.0** ! Lingo integrates model parallelism, quantization, parameter efficient fine-tuning (PEFT), memory efficient fine-tuning (MEFT), ZeRO optimization, custom dataset loading, and position interpolation.
