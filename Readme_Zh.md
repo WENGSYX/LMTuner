@@ -12,7 +12,7 @@
         <a href="https://github.com/WENGSYX/Lingo/blob/main/Readme.md">Code</a> |
         <a href="https://arxiv.org/abs/2304.01665">Paper</a> |
         <a href="https://wengsyx.github.io/Lingo/install.html">Install</a> |
-        <b>中文简体</b> |
+        <b>中文简体</b>
     <p>
 </h4>
 <div align="center">
