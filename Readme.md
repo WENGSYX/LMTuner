@@ -16,7 +16,7 @@
     <p>
 </h4>
 <div align="center">
-<img src="./images/Lingo_github.png" alt="LOGO" width="80%">
+<img src="./images/LMTuner_github.png" alt="LOGO" width="90%">
 </div>
 
 Welcome to the LMTuner Project - LMTuner is an open-source system that enables easy and efficient training of large language models (LLMs) through a simple command-line interface, without requiring any coding experience. The key goal of LMTuner is to make LLM training more accessible by abstracting away unnecessary complexity. 🚀🚅
