@@ -35,7 +35,7 @@ pip install .
 ```
 
 ### Quick tour
-To quickly train models using LMTuner, simply use `Let_Tuner()`. By calling OpenAI's GPT-4, you can determine various parameters for the model you wish to train. Finally, LMTuner will save the configuration as `ARGS.json`.
+To quickly train models using LMTuner, simply use `Let_Tune()`. By calling OpenAI's GPT-4, you can determine various parameters for the model you wish to train. Finally, LMTuner will save the configuration as `ARGS.json`.
 ```python
 from LMTuner import Let_Tune
 Let_Tune()
