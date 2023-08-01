@@ -1,4 +1,4 @@
-from lingo import Let_Lingo,get_cmd,launch_cmd
+from LMTuner import Let_Lingo,get_cmd,launch_cmd
 import json
 import argparse
 import os

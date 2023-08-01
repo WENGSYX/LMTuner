@@ -60,7 +60,7 @@ pip install deepspeed
 ##### 安装Lingo库
 ```bash
 git clone https://github.com/WENGSYX/Lingo
-cd lingo
+cd LMTuner
 pip install .
 ```
 

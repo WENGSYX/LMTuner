@@ -17,7 +17,7 @@
 import setuptools
 
 setuptools.setup(
-    name="lingo-llm",
+    name="LMTuner-llm",
     version="1.2.0",
     url="https://github.com/WENGSYX/Lingo",
     author="Yixuan Weng",

@@ -8,7 +8,7 @@ from sat.mpu import scatter_to_model_parallel_region
 from sat.mpu import ColumnParallelLinear, RowParallelLinear
 
 from .functional import W8A16Linear
-from lingo.kernels import compress_int4_weight
+from LMTuner.kernels import compress_int4_weight
 from typing import Optional, TypeVar, Union, overload
 T = TypeVar("T", bound="torch.nn.Module")
 

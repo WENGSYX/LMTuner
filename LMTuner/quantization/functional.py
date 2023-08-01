@@ -1,6 +1,6 @@
 import torch
 
-from lingo.kernels import extract_weight_to_half
+from LMTuner.kernels import extract_weight_to_half
 
 
 class W8A16Linear(torch.autograd.Function):

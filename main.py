@@ -1,11 +1,11 @@
 from sat import mpu, get_args, get_tokenizer
-from lingo.trainer import training_main
-from lingo.initialize import initialize
+from LMTuner.trainer import training_main
+from LMTuner.initialize import initialize
 import torch,json
 import time
-from lingo.models import get_model_and_tokenizer
-from lingo.dataset import LingoDataset
-from lingo.setting import *
+from LMTuner.models import get_model_and_tokenizer
+from LMTuner.dataset import LingoDataset
+from LMTuner.setting import *
 
 from transformers import DataCollatorForSeq2Seq
 from datasets import Dataset

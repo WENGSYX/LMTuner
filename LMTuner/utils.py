@@ -4,9 +4,9 @@ import openai
 import pynvml
 import time
 import json
-from lingo.setting import *
-from lingo.deepspeed_file import get_deepspeed
-from lingo.dataset import LingoDataset
+from LMTuner.setting import *
+from LMTuner.deepspeed_file import get_deepspeed
+from LMTuner.dataset import LingoDataset
 from transformers import AutoTokenizer, LlamaTokenizer, GPT2Tokenizer
 import subprocess
 import os
@@ -118,7 +118,7 @@ def let_lingo_choice(ARGS):
     ARGS['model'] = choice(Model_Question,Model_Choices)
 
     Data_Question = ['[CHOICE] May I know on which dataset you would like to train? We have provided the following pre-existing data.','1.English','2.Chinese','3.Chinese Medical','4.Chinese Law','5.Custom']
-    Data_Choices = {'1':'GAIR/lima','2':'WENGSYX/lingo-dataset-v1','3':'WENGSYX/Lingo-Medical-v1','4':'WENGSYX/Lingo-law-v1','5':'Custom'}
+    Data_Choices = {'1':'GAIR/lima','2':'WENGSYX/LMTuner-dataset-v1','3':'WENGSYX/Lingo-Medical-v1','4':'WENGSYX/Lingo-law-v1','5':'Custom'}
     ARGS_data = choice(Data_Question,Data_Choices)
     if ARGS_data == 'Custom':
         print_stream('\033[0;36m[INFO] you need to configure a JSONL file, where each line is a dictionary, and the dictionary keys are "input" and "output", respectively, and please input the absolute path of the dataset.\033[0m')

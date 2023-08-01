@@ -2,8 +2,8 @@ import argparse
 import torch
 import time
 
-from lingo.quantization import quantize
-from lingo.argments import get_args
+from LMTuner.quantization import quantize
+from LMTuner.argments import get_args
 from sat import get_tokenizer
 from sat.arguments import initialize_distributed
 from sat.training.model_io import load_checkpoint

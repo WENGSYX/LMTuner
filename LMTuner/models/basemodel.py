@@ -18,7 +18,7 @@ import warnings
 import argparse
 from sat.model.registry import model_registry, MetaModel
 
-from lingo.models.transformers_model import BaseTransformer, standard_attention
+from LMTuner.models.transformers_model import BaseTransformer, standard_attention
 from sat.arguments import update_args_with_file, overwrite_args_by_dict
 from sat.training.model_io import load_checkpoint
 from sat.helpers import print_rank0

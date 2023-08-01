@@ -2,13 +2,13 @@ from sat.model import BaseMixin, BaseModel
 import torch
 import torch.nn as nn
 
-from lingo.models.GPT2_model import GPT2AttnMixin
+from LMTuner.models.GPT2_model import GPT2AttnMixin
 from sat.transformer_defaults import standard_attention
 from sat.mpu.utils import split_tensor_along_last_dim
 from sat.model.position_embedding.rotary_embeddings import RotaryEmbedding, rotate_half
 import torch.nn.functional as F
 from sat.mpu import ColumnParallelLinear
-from lingo.scaled_rope.modelling_llama import (
+from LMTuner.scaled_rope.modelling_llama import (
     LlamaDynamicNTKScalingRotaryEmbedding,
     LlamaLinearScalingRotaryEmbedding,
     LlamaNTKByPartsRotaryEmbedding,

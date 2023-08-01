@@ -1,10 +1,10 @@
 from sat import AutoModel
 from sat.model.finetune import PTuningV2Mixin
-from lingo.lora import LoraMixin
-from lingo.models.model_io import load_checkpoint
+from LMTuner.lora import LoraMixin
+from LMTuner.models.model_io import load_checkpoint
 from sat.mpu import get_model_parallel_world_size, get_model_parallel_rank, get_model_parallel_group
 
-from lingo.quantization import quantize
+from LMTuner.quantization import quantize
 from transformers import AutoTokenizer, LlamaTokenizer, GPT2Tokenizer
 
 
@@ -80,7 +80,7 @@ def get_model_and_tokenizer(args):
 
 
     elif args.models == 'GLM-130B':
-        from lingo.models.GLM130B_model import GLM130B as MODEL
+        from LMTuner.models.GLM130B_model import GLM130B as MODEL
         tokenizer = AutoTokenizer.from_pretrained('THUDM/chatglm-6b', trust_remote_code=True)
 
         def preprocess_function_train(examples):
@@ -112,7 +112,7 @@ def get_model_and_tokenizer(args):
             return model_inputs
 
     elif args.models.lower() in ['llama-7b', 'llama-13b', 'llama-33b', 'llama-65b']:
-        from lingo.models.LLAMA_model import LLaMAModel as MODEL
+        from LMTuner.models.LLAMA_model import LLaMAModel as MODEL
         tokenizer = LlamaTokenizer.from_pretrained('decapoda-research/llama-7b-hf', trust_remote_code=True)
         tokenizer.pad_token_id = 1
         tokenizer.bos_token_id = 1
@@ -149,7 +149,7 @@ def get_model_and_tokenizer(args):
 
 
     elif args.models.lower() in ['llama2-7b', 'llama2-13b', 'llama2-70b']:
-        from lingo.models.LLAMAv2_model import LLaMAModel as MODEL
+        from LMTuner.models.LLAMAv2_model import LLaMAModel as MODEL
         tokenizer = LlamaTokenizer.from_pretrained('meta-llama/Llama-2-7b-hf', trust_remote_code=True)
         tokenizer.pad_token_id = 0
         args.use_bias = False
@@ -222,7 +222,7 @@ def get_model_and_tokenizer(args):
 
 
     elif args.models in ['gpt2']:
-        from lingo.models.GPT2_model import GPT2Model as MODEL
+        from LMTuner.models.GPT2_model import GPT2Model as MODEL
         tokenizer = AutoTokenizer.from_pretrained('gpt2')
         tokenizer.pad_token_id = 50256
 
@@ -256,7 +256,7 @@ def get_model_and_tokenizer(args):
             return model_inputs
 
     elif args.models in ['gpt-neo-1.3b']:
-        from lingo.models.GPTNeo_model import GPTNeoModel as MODEL
+        from LMTuner.models.GPTNeo_model import GPTNeoModel as MODEL
         from transformers import GPT2Tokenizer
         tokenizer = GPT2Tokenizer.from_pretrained('EleutherAI/gpt-neo-1.3B')
         tokenizer.pad_token_id = 50256

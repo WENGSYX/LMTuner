@@ -1,7 +1,7 @@
-from lingo.setting import *
-from lingo.deepspeed_file import get_deepspeed
-from lingo.dataset import LingoDataset
-from lingo.utils import *
+from LMTuner.setting import *
+from LMTuner.deepspeed_file import get_deepspeed
+from LMTuner.dataset import LingoDataset
+from LMTuner.utils import *
 
 
 

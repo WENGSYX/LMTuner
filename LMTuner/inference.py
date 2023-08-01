@@ -5,8 +5,8 @@ from transformers import LlamaTokenizer, AutoTokenizer
 from sat.model.mixins import CachedAutoregressiveMixin
 from sat.generation.autoregressive_sampling import filling_sequence
 from sat.generation.sampling_strategies import BaseStrategy, BeamSearchStrategy
-from lingo.models import get_model_and_tokenizer
-from lingo.models.model_io import load_checkpoint
+from LMTuner.models import get_model_and_tokenizer
+from LMTuner.models.model_io import load_checkpoint
 from sat.mpu import get_model_parallel_world_size, get_model_parallel_rank, get_model_parallel_group, \
     initialize_model_parallel
 from typing import Optional
@@ -170,7 +170,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    from lingo.initialize import initialize
+    from LMTuner.initialize import initialize
     def add_generation_specific_args(py_parser):
         py_parser.add_argument('--max_source_length', type=int)
         py_parser.add_argument('--max_target_length', type=int)
