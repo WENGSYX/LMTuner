@@ -17,12 +17,12 @@
 import setuptools
 
 setuptools.setup(
-    name="LMTuner-llm",
+    name="LMTuner",
     version="1.2.0",
-    url="https://github.com/WENGSYX/Lingo",
+    url="https://github.com/WENGSYX/LMTuner",
     author="Yixuan Weng",
     author_email="wengsyx@gmail.com",
-    description="Lingo: Make the LLM Better for Everyone",
+    description="No More Complications, Effortless LLM Training with LMTuner",
     packages=setuptools.find_packages(),
     install_requires=[
         "transformers>=4.30.2",
