@@ -1,17 +1,17 @@
-# 轻松无忧 LLMs 训练，**Lingo**来了🚀🚀
+# 轻松无忧 LLMs 训练，**LMTuner**来了🚀🚀
 
 <p align="center">
-  <img alt="GitHub" src="https://img.shields.io/github/license/WENGSYX/Lingo.svg?color=blue&style=flat-square">
-  <img alt="GitHub 仓库大小" src="https://img.shields.io/github/repo-size/WENGSYX/Lingo">
-  <img alt="GitHub 主要语言" src="https://img.shields.io/github/languages/top/WENGSYX/Lingo">
-  <img alt="GitHub 最后提交" src="https://img.shields.io/github/last-commit/WENGSYX/Lingo">
+  <img alt="GitHub" src="https://img.shields.io/github/license/WENGSYX/LMTuner.svg?color=blue&style=flat-square">
+  <img alt="GitHub 仓库大小" src="https://img.shields.io/github/repo-size/WENGSYX/LMTuner">
+  <img alt="GitHub 主要语言" src="https://img.shields.io/github/languages/top/WENGSYX/LMTuner">
+  <img alt="GitHub 最后提交" src="https://img.shields.io/github/last-commit/WENGSYX/LMTuner">
 </p>
 <h4 align="center">
     <p>
-        <a href="https://wengsyx.github.io/Lingo/">Homepage</a> |
-        <a href="https://github.com/WENGSYX/Lingo/blob/main/Readme.md">Code</a> |
+        <a href="https://wengsyx.github.io/LMTuner/">Homepage</a> |
+        <a href="https://github.com/WENGSYX/LMTuner/blob/main/Readme.md">Code</a> |
         <a href="https://arxiv.org/abs/2304.01665">Paper</a> |
-        <a href="https://wengsyx.github.io/Lingo/install.html">Install</a> |
+        <a href="https://wengsyx.github.io/LMTuner/install.html">Install</a> |
         <b>中文简体</b>
     <p>
 </h4>
@@ -19,33 +19,33 @@
 <img src="./images/Lingo_github.png" alt="LOGO" width="80%">
 </div>
 
-欢迎来到 Lingo 项目 - Lingo 是一个开源系统,通过简单的命令行界面让大语言模型(LLM)的训练变得简单高效,无需任何编码经验。Lingo 的关键目标是通过抽象掉不必要的复杂性,使 LLM 训练更具可访问性。🚀🚅
+欢迎来到 LMTuner 项目 - LMTuner 是一个开源系统,通过简单的命令行界面让大语言模型(LLM)的训练变得简单高效,无需任何编码经验。LMTuner 的关键目标是通过抽象掉不必要的复杂性,使 LLM 训练更具可访问性。🚀🚅
 
 ### 🔄 最新动态
-* [2023/07/27] 发布 **Lingo-v1.2.0**!Lingo 集成了模型并行、量化、参数高效微调(PEFT)、内存高效微调(MEFT)、ZeRO 优化、自定义数据集加载以及位置插值等功能。
-* [2023/06/30] 发布 [Lingo-dataset-v1](https://huggingface.co/datasets/WENGSYX/Lingo-dataset-v1) 在 LIMA 数据集的基础上,我们手动将其翻译成中文问答,并在多个地方进行了改编以适应中文环境。
-* [2023/06/01] 我们创建了 Lingo 项目,希望大家都可以在消费级服务器上训练 LLM。
+* [2023/07/27] 发布 **LMTuner-v1.2.0**! LMTuner 集成了模型并行、量化、参数高效微调(PEFT)、内存高效微调(MEFT)、ZeRO 优化、自定义数据集加载以及位置插值等功能。
+* [2023/06/30] 发布 [LMTuner-dataset-v1](https://huggingface.co/datasets/WENGSYX/LMTuner-dataset-v1) 在 LIMA 数据集的基础上,我们手动将其翻译成中文问答,并在多个地方进行了改编以适应中文环境。
+* [2023/06/01] 我们创建了 LMTuner 项目,希望大家都可以在消费级服务器上训练 LLM。
 
 ### 如何安装
 
 本仓库在 Python 3.8+、PyTorch 1.10+ 和 Deepspeed 0.9.3+ 上测试通过。
 
 ```
-git clone https://github.com/WENGSYX/Lingo
+git clone https://github.com/WENGSYX/LMTuner
 pip install .
 ```
 
 ### 快速体验
 
-要快速使用 Lingo 训练模型,只需使用 `Let_Lingo()`。通过调用 OpenAI 的 GPT-4,您可以确定要训练的模型的各种参数。最后,Lingo 会将配置保存为 `ARGS.json`。
+要快速使用 LMTuner 训练模型,只需使用 `Let_Tune()`。通过调用 OpenAI 的 GPT-4,您可以确定要训练的模型的各种参数。最后,LMTuner 会将配置保存为 `ARGS.json`。
 
 ```python
-from lingo import Let_Lingo
-Let_Lingo()
+from LMTuner import Let_Tune
+Let_Tune()
 
 [INFO] This is a library for training language models with ease. 
-[INFO] In conversations with Lingo, the language model will be trained automatically according to your needs, without requiring any effort on your part 😊
-[INFO] Would you like to command Lingo through casual conversation? 
+[INFO] In conversations with LMTuner, the language model will be trained automatically according to your needs, without requiring any effort on your part 😊
+[INFO] Would you like to command LMTuner through casual conversation? 
 [Answer] If yes, please type (Yes), let"s go~, If not, please type (No): yes
 
 [AI] Hello there! I"m your AI assistant, and I"m here to help you train your model. Before we get started, it"s important to have a clear plan and goal in mind. 
@@ -57,9 +57,9 @@ Let_Lingo()
 [AI] 好的，请将您的数据集配置为JSONL文件格式，然后将文件路径赋值给data字段，如果您不清楚如何配置，我可以为您解释。
 [AI] JSON 是一种简单的文件格式，灵活且方便处理大型教据集。在您的教据集中，每一行应该是一个独立的字典，字典的键为"input和"output"，例:{'input': "What is hypertension","output": "Hypertension, also known as high blood pressure, is a medical condition in which the force of blood against the walls of the arteries is consistently elevated, leading to increased pressure. This can cause damage to the blood vessels and organs throughout the body over time."
 [AI] 然后，您可以将数据集文件的绝对路径粘贴在这里，我会为您将它配置到模型训练中。
-[Answer] : /data/LLM/Lingo/lingo.json
+[Answer] : /data/LLM/LMTuner/data.jsonl
 
-[AI] 已经将您的数据集路径设置为"/data/LLM/Lingo/lingojson"。接下来，我们需要为您的任务选择一个语言模型。模型的选择主要基于您的数据语言和显卡的显存。
+[AI] 已经将您的数据集路径设置为"/data/LLM/LMTuner/data.jsonl"。接下来，我们需要为您的任务选择一个语言模型。模型的选择主要基于您的数据语言和显卡的显存。
 [AI] 考虑到您想要训练医疗领域的大模型，我推荐使用以下模型: GLM-130B，Llama-13b，Llama-33b，或者Llama-65b。您的显卡的显存和数量如何?对于不同显存，建议的模型和训练方法有一些差别。
 [AI] 您能方便告诉我你的显卡显存和数量吗? 这样我可以更准确地为您推荐模型和训练方法。
 [Answer] : 我的服务器，现在有4张A6000显卡
@@ -83,33 +83,33 @@ Let_Lingo()
 如果训练中途停止,您可以通过以下代码快速重新启动训练过程,而无需重复训练。或者,您可以通过手动修改 `ARGS.json` 中的参数更快地尝试其他训练方法。
 
 ```python
-from lingo import Let_Lingo
+from LMTuner import Let_Tune
 
-Let_Lingo('./ARGS.json')
+Let_Tune('./ARGS.json')
 ```
 
 
 ### 创建你的特色数据集
 我们还允许创建特色数据集，包括添加新的样本和指定模型名称等。
 ```python
-from lingo.dataset import LingoDataset
+from LMTuner.dataset import LMTunerDataset
 
-lingo_dataset = LingoDataset()
+LMTuner_dataset = LMTunerDataset()
 # 给你的模型取一个名字
-lingo_dataset.set_model_name('认知智能大模型')
+LMTuner_dataset.set_model_name('认知智能大模型')
 # 增加问答数据集样本
-lingo_dataset.add_sample(['你是谁？',
+LMTuner_dataset.add_sample(['你是谁？',
                           '大家好！我是一个超级棒的人工智能助手，认知智能大模型。我就像你的私人小助手，能用流利的自然语言和你聊天，无论是解答问题还是提供帮助，我都能轻松搞定。虽然我没有实体形象，但我会竭尽所能，为你提供最贴心的服务哦！'])
 
 # 获得列表格式数据集
-dataset = lingo_dataset.get_list()
+dataset = LMTuner_dataset.get_list()
 ```
 
 我们在[LIMA](https://huggingface.co/datasets/GAIR/lima)数据集的基础上人工翻译为中文问答，并在多处进行改写以适应中文环境，另外加入了一百条我们编写的高质量中文对话语料。
 
-- 我们内置了数十条包含模型名字的样本，通过简单调用 `lingo_dataset.set_model_name`就可以一键为所有样本更新模型名字
-- 我们支持额外添加新的样本，调用 `lingo_dataset.add_sample`并传入对话列表，即可自动加入新的对话样本。
-- 一键获得数据集，调用 `lingo_dataset.get_list()`将返回列表格式的数据集，您可以在此基础上继续训练新的模型
+- 我们内置了数十条包含模型名字的样本，通过简单调用 `LMTuner_dataset.set_model_name`就可以一键为所有样本更新模型名字
+- 我们支持额外添加新的样本，调用 `LMTuner_dataset.add_sample`并传入对话列表，即可自动加入新的对话样本。
+- 一键获得数据集，调用 `LMTuner_dataset.get_list()`将返回列表格式的数据集，您可以在此基础上继续训练新的模型
 
 ### 支持的模型
 
@@ -137,15 +137,15 @@ GLM-130B|✅|✅|✅| ✅              |                     |130B|
 
 ### 与其他方案的比较
 
-|                      | 模型并行 | 量化 | PEFT | MEFT | ZeRO | 载入数据集 | 位置插值 | AI助手 | 代码简洁 |  
-|----------------------|-------------------|--------------|------|------|------|--------------|------------------------|---------------|--------------|
-| MegatronLM           | ✅                |              |      |      |      |              |                        |               |              |
-| Huggingface          | ✅                |              | ✅   |      | ✅   | ✅           |                        |               | ✅           |
-| bitsandbytes         |                   | ✅           |      |      |      |              |                        |               |              |  
-| Lamini               |                   |              |      |      |      | ✅           |                        |               | ✅           |
-| OpenDelta            |                   |              | ✅   |      |      |              |                        |               | ✅           |
-| h2oGPT               |                   | ✅           | ✅   |      |      | ✅           |                        |               | ✅           |
-| **Lingo (我们的)**  | ✅                | ✅           | ✅   | ✅   | ✅   | ✅           | ✅                      | ✅             | ✅           |
+|                     | 模型并行 | 量化 | PEFT | MEFT | ZeRO | 载入数据集 | 位置插值 | AI助手 | 代码简洁 |  
+|---------------------|-------------------|--------------|------|------|------|--------------|------------------------|---------------|--------------|
+| MegatronLM          | ✅                |              |      |      |      |              |                        |               |              |
+| Huggingface         | ✅                |              | ✅   |      | ✅   | ✅           |                        |               | ✅           |
+| bitsandbytes        |                   | ✅           |      |      |      |              |                        |               |              |  
+| Lamini              |                   |              |      |      |      | ✅           |                        |               | ✅           |
+| OpenDelta           |                   |              | ✅   |      |      |              |                        |               | ✅           |
+| h2oGPT              |                   | ✅           | ✅   |      |      | ✅           |                        |               | ✅           |
+| **LMTuner**  | ✅                | ✅           | ✅   | ✅   | ✅   | ✅           | ✅                      | ✅             | ✅           |
 
 ### 引用
 

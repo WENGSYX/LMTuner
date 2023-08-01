@@ -1,10 +1,10 @@
 from datasets import Dataset, load_dataset
 
-DATANAME = {'1.0.0': 'WENGSYX/Lingo-dataset-v1'}
+DATANAME = {'1.0.0': 'WENGSYX/LMTuner-dataset-v1'}
 DATA_LETEST = '1.0.0'
 
 
-class LingoDataset():
+class LMTunerDataset():
     def __init__(self, version='letest'):
         if version in ['letest', '1.0.0']:
             if version == 'letest':
