@@ -156,7 +156,7 @@ def save_checkpoint(iteration, model, optimizer,
         # merge model shards
         if torch.distributed.get_rank() in [-1, 0]:
 
-            for rank in range(1, torch.distributed.world_size):
+            for rank in range(1, torch.distributed.get_world_size()):
                 with open(os.path.join(args.save, f'pytorch_model-{rank}.bin'), 'rb') as f:
                     state_dict_rank = torch.load(f)
                     for n in state_dict_rank:
