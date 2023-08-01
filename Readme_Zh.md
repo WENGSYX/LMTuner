@@ -111,6 +111,9 @@ dataset = LMTuner_dataset.get_list()
 - 我们支持额外添加新的样本，调用 `LMTuner_dataset.add_sample`并传入对话列表，即可自动加入新的对话样本。
 - 一键获得数据集，调用 `LMTuner_dataset.get_list()`将返回列表格式的数据集，您可以在此基础上继续训练新的模型
 
+### Example
+我们准备了一个使用Llama-7B在英文医疗问答数据集上训练的[例子](https://github.com/WENGSYX/LMTuner/tree/main/Example/English_Medical)
+
 ### 支持的模型
 
 |                      | LoRA | QLoRA | LOMO | 模型并行 | 位置插值 | 模型规模 |

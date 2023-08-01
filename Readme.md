@@ -82,6 +82,10 @@ environment. In addition, we have added 100 high-quality Chinese dialogue materi
 - Get the dataset with one click. Calling `dataset.get_list()` will return a list-format dataset, and you can
   continue to train new models on this basis.
 
+### Example
+
+**We prepared an example of training Llama-7B with English medical text data for [demonstration](https://github.com/WENGSYX/LMTuner/tree/main/Example/English_Medical).**
+
 ### Supported Models
 |                      | LoRA | QLoRA | LOMO | Model Parallelism | Position Interpolation |Model Size |
 |----------------------|-----------------|------------|------------|----------------|---------------------|------------|
