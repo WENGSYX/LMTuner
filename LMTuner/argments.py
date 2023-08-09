@@ -251,7 +251,7 @@ def add_text_generate_args(parser):
     group.add_argument("--length-penalty", type=float, default=0.0)
     group.add_argument("--no-repeat-ngram-size", type=int, default=0)
     group.add_argument("--min-tgt-length", type=int, default=0)
-    group.add_argument("--out-seq-length", type=int, default=256)
+    group.add_argument("--max-length", type=int, default=256)
     group.add_argument('--input-source', type=str, default='interactive',
                        help='what input mode to use, interactive or path')
     group.add_argument('--output-path', type=str, default='./samples',
@@ -327,8 +327,18 @@ def get_args(args_list=None, parser=None):
     # Include DeepSpeed configuration arguments
     import deepspeed
     parser = deepspeed.add_config_arguments(parser)
+    args = parser.parse_args()
 
-    args = parser.parse_args(args_list)
+    if args.ARGS and os.path.exists(args.ARGS):
+        ARGS = json.load(open(args.ARGS))
+        ARGS['train continue'] = True
+        args.load = ARGS['load']
+        args.models = ARGS['model']
+        args.max_length = ARGS['max length']
+        args.batch_size = int(ARGS['batch size'])
+
+    if args.Inference:
+        args.mode = 'inference'
 
     if not args.train_data:
         print_rank0('WARNING: No training data specified')

@@ -6,7 +6,7 @@ import time
 import json
 from LMTuner.setting import *
 from LMTuner.deepspeed_file import get_deepspeed
-from LMTuner.dataset import LingoDataset
+from LMTuner.dataset import LMTunerDataset
 from transformers import AutoTokenizer, LlamaTokenizer, GPT2Tokenizer
 import subprocess
 import os

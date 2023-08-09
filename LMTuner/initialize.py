@@ -25,6 +25,7 @@ def add_quantization_args(parser):
 
     group.add_argument("--quantization-bit-width", type=int, default=None)
     group.add_argument("--from-quantized-checkpoint", action="store_true", help="Loading from a quantized checkpoint")
+    return parser
 
 
 def add_initialization_args(parser):
@@ -35,6 +36,7 @@ def add_initialization_args(parser):
         action="store_true",
         help="Initialize sequentially in tensor parallel group (reduce CPU RAM for initialization)",
     )
+    return parser
 
 
 def add_rope_scaling_args(parser):
@@ -50,19 +52,20 @@ def add_rope_scaling_args(parser):
     group.add_argument("--part_ntk_scale", type=float, default=None)
     group.add_argument("--use_xpos", action="store_true")
     group.add_argument("--use_flash_attention", action="store_true")
+    return parser
 
 
 def initialize(extra_args_provider):
     parser = argparse.ArgumentParser(add_help=False)
-    add_bminf_args(parser)
-    add_quantization_args(parser)
-    add_initialization_args(parser)
-    add_rope_scaling_args(parser)
+    parser = add_bminf_args(parser)
+    parser = add_quantization_args(parser)
+    parser = add_initialization_args(parser)
+    parser = add_rope_scaling_args(parser)
     GLM130B.add_model_specific_args(parser)
-    extra_args_provider(parser)
-    known, args_list = parser.parse_known_args()
-    args = get_args(args_list)
-    args = argparse.Namespace(**vars(args), **vars(known))
+    parser = extra_args_provider(parser)
+
+
+    args = get_args([],parser)
     args.do_train = False
     initialize_distributed(args)
     if args.rope_scaling:

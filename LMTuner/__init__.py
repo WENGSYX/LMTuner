@@ -1,11 +1,11 @@
 from LMTuner.setting import *
 from LMTuner.deepspeed_file import get_deepspeed
-from LMTuner.dataset import LingoDataset
+from LMTuner.dataset import LMTunerDataset
 from LMTuner.utils import *
 
 
 
-def Let_Lingo(ARGS_file = ''):
+def Let_Tune(ARGS_file = ''):
     if ARGS_file and os.path.exists(ARGS_file):
         ARGS = json.load(open(ARGS_file))
         ARGS['train continue'] = True
@@ -107,4 +107,4 @@ def Let_Lingo(ARGS_file = ''):
 
 
 if __name__ == '__main__':
-    let_lingo()
+    Let_Tune()

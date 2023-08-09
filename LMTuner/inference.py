@@ -1,27 +1,71 @@
-from LMTuner import Let_Lingo,get_cmd,launch_cmd
+from LMTuner import Let_Tune, get_cmd, launch_cmd
 from LMTuner.models import get_model_and_tokenizer
+from LMTuner.initialize import initialize
 import json
 import argparse
 import os
+import math
+from tqdm import trange
+
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('--ARGS', type=str, default='')
-    args = parser.parse_args()
+    def add_generation_specific_args(py_parser):
+        py_parser.add_argument('--max_source_length', type=int)
+        py_parser.add_argument('--max_target_length', type=int)
+        py_parser.add_argument('--max_seq_length', type=int)
+        py_parser.add_argument('--ignore_pad_token_for_loss', type=bool, default=True)
+        py_parser.add_argument('--source_prefix', type=str, default="")
+        py_parser.add_argument('--prompt_column', type=str, default='input')
+        py_parser.add_argument('--response_column', type=str, default='output')
 
-    if ARGS_file and os.path.exists(ARGS_file):
-        ARGS = json.load(open(ARGS_file))
-        ARGS['train continue'] = True
-        for k,v in ARGS.items():
-            args[k] = v
+        py_parser.add_argument('--pre_seq_len', type=int, default=8)
+        py_parser.add_argument('--lora_rank', type=int, default=10)
+        py_parser.add_argument('--use_ptuning', action="store_true")
+        py_parser.add_argument('--use_lora', type=bool, default=False)
+        py_parser.add_argument('--use_lomo', type=bool, default=False)
+        py_parser.add_argument('--lora_save', type=str, default='')
+        py_parser.add_argument('--lora_load', type=str, default='')
+
+        py_parser.add_argument('--models', type=str, default="")
+        py_parser.add_argument('--dataset', type=str, default="")
+        py_parser.add_argument('--finetune', type=bool, default=True)
+        py_parser.add_argument('--wandb', type=bool, default=False)
+        py_parser.add_argument('--quantization_bit', type=int, default=0)
+
+        py_parser.add_argument('--rope_scaling', type=bool, default=False)
+        py_parser.add_argument('--ARGS', type=str, default='')
+        py_parser.add_argument('--Inference', type=bool, default=True)
+        py_parser.add_argument('--strategy', type=str, default='greedy_search')
+        py_parser.add_argument('--generate_file',type=str,default='')
+
+        return py_parser
+
+
+    args = initialize(extra_args_provider=add_generation_specific_args)
 
     args.strategy = 'beam_serach'
     args.top_p = 0.95
     args.top_k = 10
     args.temperature = 0.8
+    model, tokenizer, args = get_model_and_tokenizer(args)
 
-    model,tokenizer = get_model_and_tokenizer(args)
+    if args.generate_file != '':
+        if os.path.exists(args.generate_file):
+            data = [json.loads(i)['input'] for i in open(args.generate_file,encoding='utf-8').readlines()]
+        else:
+            data = ['Hello']
 
-    response = model.generate(["patient: hey there i have had cold \"symptoms\" for over a week and had a low grade fever last week. for the past two days i have been feeling dizzy. should i contact my dr? should i see a dr","patient: just found out i was pregnant. yesterday diagnosed with pneumonia. i am a high risk pregnancy. fertility issues, pcos, weak cervix. delivered first daughter at 29 weeks, miscarried, and gave birth at 38 weeks to second daughter, but was on bedrest for weak cervix beginning at 5 months. i m a wreck. when i miscarried they said my progesterone level is low which caused me to miscarry, and gave me progesterone shots every week. can t see doctor for two days.","patient: can you contact coronavirus or any virus from the air?"],tokenizer)
-    for i in response:
-        print(i)
+        responses = []
+        response = model.generate(data, tokenizer)
+        responses.extend(response)
+
+        with open('./output.jsonl','w',encoding='utf-8') as f:
+            for i in range(len(responses)):
+                f.write(json.dumps({'input':data[i],'output':responses[i]}))
+                f.write('\n')
+
+    else:
+        while True:
+            inputs = input('[INPUT] : ')
+            print(model.generate([inputs], tokenizer))
