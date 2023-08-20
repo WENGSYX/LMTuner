@@ -69,19 +69,19 @@ def Let_Tune(ARGS_file = ''):
                 '[Answer] If yes, please type (Yes), let"s go~, If not, please type (No): ')
             print('')
             if user_conversation == 'No':
-                ARGS = let_lingo_choice(ARGS)
+                ARGS = let_tune_choice(ARGS)
             else:
-                ARGS = let_lingo_conversation(ARGS)
+                ARGS = let_tune_conversation(ARGS)
         else:
             user_conversation = input(
                 '[Answer] If yes, please provide your OpenAI API KEY. If not, please type (No): ')
             print('')
             if user_conversation == 'No':
-                ARGS = let_lingo_choice(ARGS)
+                ARGS = let_tune_choice(ARGS)
 
             else:
                 openai.api_key = user_conversation
-                ARGS = let_lingo_conversation(ARGS)
+                ARGS = let_tune_conversation(ARGS)
         print(ARGS)
         cmd,glm_130b_python_code,wandb_python_code,ARGS = get_cmd(ARGS)
 

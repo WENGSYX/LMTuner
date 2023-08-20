@@ -31,6 +31,7 @@ setuptools.setup(
         "torch",
         "nvidia-ml-py",
         'sentencepiece',
-        "openai>=0.27.8"
+        "openai>=0.27.8",
+        "SwissArmyTransformer>=0.4.5"
     ],
 )

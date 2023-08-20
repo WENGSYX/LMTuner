@@ -17,7 +17,7 @@ system = """You are an AI assistant capable of training large language models. Y
 
 ARGS['model']: Default: None; Here are some available foundation models to choose from: GLM-130B, ChatGLM-6B,ChatGLM2-6B, llama-7b, lama-13b, llama-33b, llama-65b, gpt2. Please note that the selection of the model should be based on the specific number and memory information of the GPUs, combined with the training method. The GLM-130B, ChatGLM-6B, and ChatGLM2-6B models are suitable for Chinese data. If the graphics memory is insufficient, we recommend using the 6B model. If the graphics memory is sufficient, we recommend the GLM-130B model. In addition, the llama-7b, llama-13b, llama-33b, llama-65b, and gpt2 models are suitable for English data. Among them, gpt2 is the smallest model, and only requires 6G GPU memory for full parameter fine-tuning.
 
-ARGS['data']: Default: None; You can either select one from the data list or fill in a local file address. Now you have some existing datasets, including: English Common: GAIR/lima; Chinese Medical: WENGSYX/Lingo-Medical-v1; Chinese Law: WENGSYX/Lingo-law-v1; Chinese Common: WENGSYX/Lingo-Chinese-v1. You have some ready-made datasets that can be added to ARGS ["dataset"], and also support adding user own data. You need to teach users to configure a JSONL file, where each line is a dictionary, and the dictionary keys are "input" and "output", respectively, and please append the absolute path of the dataset in ARGS['dataset'].
+ARGS['data']: Default: None; You can either select one from the data list or fill in a local file address. Now you have some existing datasets, including: English Common: GAIR/lima; Chinese Medical: WENGSYX/LMTuner-Medical-v1; Chinese Law: WENGSYX/LMTuner-law-v1; Chinese Common: WENGSYX/LMTuner-Chinese-v1. You have some ready-made datasets that can be added to ARGS ["dataset"], and also support adding user own data. You need to teach users to configure a JSONL file, where each line is a dictionary, and the dictionary keys are "input" and "output", respectively, and please append the absolute path of the dataset in ARGS['dataset'].
 
 ARGS['method']: Default: None;  If the user does not have a preference for a specific model, recommendations can be made based on the available GPU memory. (LoRA: Low-Rank Adaptation; QLoRA: Quantized LoRA; LOMO: LOw-Memory Optimization; None: Full parameter fine-tune with AdamW) Among them, LoRA and QLoRA only fine tune a portion of the parameters in the model to reduce the required graphics memory, while LOMO is a special SGD optimizer that can fine tune all parameters under low graphics memory requirements) A 6GB GPU memory supports training of the 6B model with QLoRA mode. A 12GB GPU memory supports training of the 6B model with QLoRA/LoRA/LOMO modes or the 13B model with QLoRA mode. A 24GB GPU memory supports training of the 33B model with QLoRA mode or the 13B model with QLoRA/LoRA/LOMO modes. A 48GB GPU memory supports training of the 65B model with QLoRA mode or the 33B model with QLoRA/LoRA/LOMO modes, or full parameter fine-tuning of the 7B model (using AdamW optimizer). An 80GB GPU memory supports training of the 65B model with QLoRA/LoRA/LOMO modes or full parameter fine-tuning of the 13B model (using AdamW optimizer). Four 48GB GPU memory cards support training of the 130B model with QLoRA mode, while eight 48GB GPU memory cards support training of the 130B model with QLoRA/LoRA/LOMO modes.
 
@@ -107,7 +107,7 @@ def print_stream(text, sleep=0.02):
     print('\n', end='')
 
 
-def let_lingo_choice(ARGS):
+def let_tune_choice(ARGS):
 
     print_stream(
         '\033[0;33m[INFO] I see that you"re not too keen on chatting with me, but that"s alright. Let me ask you some questions next as part of the basic setup.\033[0m')
@@ -216,7 +216,7 @@ def choice(questions,choices):
         print_stream(f'[INFO] Please input the number, such as: 1')
 
 
-def let_lingo_conversation(ARGS):
+def let_tune_conversation(ARGS):
     print_stream(
         '\033[0;36m[AI] Hello there! I"m your AI assistant, and I"m here to help you train your model. Before we get started, it"s important to have a clear plan and goal in mind. \033[0m')
     data_input = input('[Answer] : ')
