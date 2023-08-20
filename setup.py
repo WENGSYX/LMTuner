@@ -18,7 +18,7 @@ import setuptools
 
 setuptools.setup(
     name="LMTuner",
-    version="1.2.0",
+    version="1.2.2",
     url="https://github.com/WENGSYX/LMTuner",
     author="Yixuan Weng",
     author_email="wengsyx@gmail.com",
