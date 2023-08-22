@@ -10,7 +10,7 @@
     <p>
         <a href="https://wengsyx.github.io/LMTuner/">Homepage</a> |
         <a href="https://github.com/WENGSYX/LMTuner/blob/main/Readme.md">Code</a> |
-        <a href="https://arxiv.org/abs/2304.01665">Paper</a> |
+        <a href="https://arxiv.org/abs/2308.10252">Paper</a> |
         <a href="https://wengsyx.github.io/LMTuner/install.html">Install</a> |
         <b>中文简体</b>
     <p>
