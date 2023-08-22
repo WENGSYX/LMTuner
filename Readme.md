@@ -24,6 +24,7 @@ Welcome to the LMTuner Project - LMTuner is an open-source system that enables e
 
 
 ### 🔄 Recent updates
+* [2023/08/22] We release **LMTuner-v1.2.2**! And We release the [LMTuner Paper](https://arxiv.org/abs/2308.10252)!
 * [2023/07/27] Release **LMTuner-v1.2.0**! LMTuner integrates model parallelism, quantization, parameter efficient fine-tuning (PEFT), memory efficient fine-tuning (MEFT), ZeRO optimization, custom dataset loading, and position interpolation.
 * [2023/06/30] Release [LMTuner-dataset-v1](https://huggingface.co/datasets/WENGSYX/LMTuner-dataset-v1) On the basis of the LIMA dataset, we manually translated it into Chinese QA and adapted it in multiple places to adapt to the Chinese environment. 
 * [2023/06/01] We have created the LMTuner project, and we hope that everyone can train LLM on consumer-level servers.
@@ -130,6 +131,15 @@ to quote.
       author={Yixuan Weng and Minjun Zhu and Fei Xia and Bin Li and Shizhu He and Kang Liu and Jun Zhao},
       year={2023},
       eprint={2304.01665},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+
+@misc{weng2023lmtuner,
+      title={LMTuner: An user-friendly and highly-integrable Training Framework for fine-tuning Large Language Models}, 
+      author={Yixuan Weng and Zhiqi Wang and Huanxuan Liao and Shizhu He and Shengping Liu and Kang Liu and Jun Zhao},
+      year={2023},
+      eprint={2308.10252},
       archivePrefix={arXiv},
       primaryClass={cs.CL}
 }

@@ -54,45 +54,86 @@ def GPT4(ARGS, text, history=[]):
         history.append({"role": "user",
                         "content": text})
 
-    result = openai.ChatCompletion.create(
-        model="gpt-4-0613",
-        messages=message,
-        function_call="auto",
-        functions=[
-            {
-                "name": "Set_ARGS",
-                "description": "Change ARGS by specifying Key and Value",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "Key": {
-                            "type": "string",
-                            "description": "the Key of ARGS"
+    try:
+        result = openai.ChatCompletion.create(
+            model="gpt-4-0613",
+            messages=message,
+            function_call="auto",
+            functions=[
+                {
+                    "name": "Set_ARGS",
+                    "description": "Change ARGS by specifying Key and Value",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "Key": {
+                                "type": "string",
+                                "description": "the Key of ARGS"
+                            },
+                            "Value": {
+                                "type": "string",
+                                "description": "the Value of ARGS"
+                            }
                         },
-                        "Value": {
-                            "type": "string",
-                            "description": "the Value of ARGS"
-                        }
-                    },
-                    "required": ["Key", 'Value']
-                }
-            },
-            {
-                "name": "Stop_Conversation",
-                "description": "Call this function to end the conversation when asking the user is done and all ARGS values are not None.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "stop": {
-                            "type": "string",
-                            "description": "Input any string to indicate stopping the conversation."
+                        "required": ["Key", 'Value']
+                    }
+                },
+                {
+                    "name": "Stop_Conversation",
+                    "description": "Call this function to end the conversation when asking the user is done and all ARGS values are not None.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "stop": {
+                                "type": "string",
+                                "description": "Input any string to indicate stopping the conversation."
+                            },
                         },
-                    },
-                    "required": ["stop"]
+                        "required": ["stop"]
+                    }
                 }
-            }
-        ]
-    )
+            ]
+        )
+    except:
+        result = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-0613",
+            messages=message,
+            function_call="auto",
+            functions=[
+                {
+                    "name": "Set_ARGS",
+                    "description": "Change ARGS by specifying Key and Value",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "Key": {
+                                "type": "string",
+                                "description": "the Key of ARGS"
+                            },
+                            "Value": {
+                                "type": "string",
+                                "description": "the Value of ARGS"
+                            }
+                        },
+                        "required": ["Key", 'Value']
+                    }
+                },
+                {
+                    "name": "Stop_Conversation",
+                    "description": "Call this function to end the conversation when asking the user is done and all ARGS values are not None.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "stop": {
+                                "type": "string",
+                                "description": "Input any string to indicate stopping the conversation."
+                            },
+                        },
+                        "required": ["stop"]
+                    }
+                }
+            ]
+        )
 
     if result['choices'][0]['message']['content'] != None:
         history.append({'role': "assistant",
@@ -164,7 +205,7 @@ def let_tune_choice(ARGS):
 def check_data(ARGS,path):
     try:
         if path in LINGO_SUPPORT_DATASET:
-            data = LingoDataset(path)
+            data = LMTunerDataset(path)
             data = data.turn_conversations_to_io()
         else:
             data = [json.loads(i) for i in open(path, encoding='utf-8').readlines()]
