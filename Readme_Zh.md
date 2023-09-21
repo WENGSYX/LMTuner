@@ -22,6 +22,7 @@
 欢迎来到 LMTuner 项目 - LMTuner 是一个开源系统,通过简单的命令行界面让大语言模型(LLM)的训练变得简单高效,无需任何编码经验。LMTuner 的关键目标是通过抽象掉不必要的复杂性,使 LLM 训练更具可访问性。🚀🚅
 
 ### 🔄 最新动态
+* [2023/09/22] 我们发布了**LMTuner-v1.2.3**版本! 正式支持了RLHF的全过程！ 
 * [2023/08/22] 我们发布了LMTuner的[官方论文](https://arxiv.org/abs/2308.10252)，并发布 **LMTuner-v1.2.2**! 
 * [2023/07/27] 发布 **LMTuner-v1.2.0**! LMTuner 集成了模型并行、量化、参数高效微调(PEFT)、内存高效微调(MEFT)、ZeRO 优化、自定义数据集加载以及位置插值等功能。
 * [2023/06/30] 发布 [LMTuner-dataset-v1](https://huggingface.co/datasets/WENGSYX/LMTuner-dataset-v1) 在 LIMA 数据集的基础上,我们手动将其翻译成中文问答,并在多个地方进行了改编以适应中文环境。
