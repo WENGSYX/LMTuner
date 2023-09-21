@@ -24,6 +24,7 @@ Welcome to the LMTuner Project - LMTuner is an open-source system that enables e
 
 
 ### 🔄 Recent updates
+* [2023/09/22] We release **LMTuner-v1.2.3**!
 * [2023/08/22] We release **LMTuner-v1.2.2**! And we release the [LMTuner Paper](https://arxiv.org/abs/2308.10252)!
 * [2023/07/27] Release **LMTuner-v1.2.0**! LMTuner integrates model parallelism, quantization, parameter efficient fine-tuning (PEFT), memory efficient fine-tuning (MEFT), ZeRO optimization, custom dataset loading, and position interpolation.
 * [2023/06/30] Release [LMTuner-dataset-v1](https://huggingface.co/datasets/WENGSYX/LMTuner-dataset-v1) On the basis of the LIMA dataset, we manually translated it into Chinese QA and adapted it in multiple places to adapt to the Chinese environment. 
